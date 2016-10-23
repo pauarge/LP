@@ -222,22 +222,21 @@ void removeBlock(string id) {
   g.blocks.erase(id);
 }
 
-pair<string, tblock> recPush(AST *pntr, string id) {
+string recPush(AST *pntr, string id, int rec) {
   string lId, rId;
   int h, w;
-  tblock finalBlock;
   
     if (pntr->down->right->kind == "PUSH" or pntr->down->right->kind == "POP"){
-    rId = recPush(pntr->down->right, id).first;
+    rId = recPush(pntr->down->right, id, rec + 1);
   } else {
     rId = pntr->down->right->kind;
   }
   
-    blockIt itR = g.blocks.find(rId);
-  if(itR == g.blocks.end()) return {"err", finalBlock};
+    if (rId == "done") return "done";
+  else if (rId == "err") return "err";
   
-    if (rId == "done") return {"done", finalBlock};
-  else if (rId == "err") return {"err", finalBlock};
+    blockIt itR = g.blocks.find(rId);
+  if(itR == g.blocks.end()) return "err";    
   
     if (pntr->down->kind == "list") {
     w = parseKind(pntr->down->down->kind);
@@ -245,7 +244,7 @@ pair<string, tblock> recPush(AST *pntr, string id) {
   } else {
     lId = pntr->down->kind;
     blockIt itL = g.blocks.find(lId);
-    if(itL == g.blocks.end()) return {"err", finalBlock};
+    if(itL == g.blocks.end()) return "err";
     tblock b = itL->second;
     w = b.w;
     h = b.h;
@@ -262,18 +261,19 @@ pair<string, tblock> recPush(AST *pntr, string id) {
       } else {
         g.blocks["U" + to_string(currentUnnamed++)] = insertBlock(x, y, h, w);
       }
-      if (id == rId) finalBlock = g.blocks[id];
-      else finalBlock = {x, y, h, w};
-      return {"done", finalBlock};
+      if(rec == 0 && id != rId){
+        g.blocks[id] = g.blocks[rId];
+      }
+      return "done";
     } else {
-      return {"err", finalBlock};
+      return "err";
     }
   } else if (pntr->kind == "POP" and lId.length() > 0) {
     removeBlock(lId);
-    return {rId, finalBlock};
+    return rId;
   }
   
-    return {"done", finalBlock};
+    return "done";
 }
 
 bool evaluateCondition(AST *pntr) {
@@ -360,11 +360,9 @@ void executeMove(AST *pntr) {
 }
 
 void executePush(AST *pntr, string id) {
-  pair<string, tblock> res = recPush(pntr, id);
-  if (res.first == "err") {
+  string res = recPush(pntr, id, 0);
+  if (res == "err") {
     cout << "PUSH operation not allowed." << endl;
-  } else {
-    g.blocks[id] = res.second;
   }
 }
 

@@ -1,8 +1,6 @@
-Grid 5 5
+Grid 6 6
 
 B0 = PLACE (3,3) AT (1,1)
-B4 = (2,2) PUSH B4
+B1 = (2,2) PUSH B0
 
-WHILE (FITS(B2,2,1,2)) [
-  B2 = (2,1) PUSH B2
-]
+MOVE B1 EAST 3
