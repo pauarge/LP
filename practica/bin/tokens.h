@@ -165,5 +165,7 @@ extern SetWordType setwd1[];
 extern SetWordType zzerr7[];
 extern SetWordType zzerr8[];
 extern SetWordType zzerr9[];
+extern SetWordType zzerr10[];
+extern SetWordType zzerr11[];
 extern SetWordType setwd2[];
 extern SetWordType setwd3[];

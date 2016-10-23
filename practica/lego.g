@@ -261,7 +261,7 @@ string recPush(AST *pntr, string id, int rec) {
             if(rec == 0 && id != rId){
             	g.blocks[id] = g.blocks[rId];
             }
-            return "done";
+            return rId;
         } else {
         	if(lId.length() > 0) {
         		g.blocks[lId] = insertBlock(b);
@@ -540,7 +540,7 @@ void printGrid() {
     cout << "GRID (HEIGHTS):" << endl;
     for (int i = 0; i < g.n; i++) {
         for (int j = 0; j < g.m; j++) {
-            cout << setfill('0') << setw(1) << g.height[i][j] << " ";
+            cout << setfill('0') << setw(2) << g.height[i][j] << " ";
         }
         cout << endl;
     }
@@ -551,7 +551,7 @@ void printGrid() {
 int main() {
     root = NULL;
     ANTLR(lego(&root), stdin);
-    //ASTPrint(root);
+    ASTPrint(root);
     executeListInstructions(root);
     printBlocks();
     printGrid();
@@ -592,7 +592,7 @@ int main() {
 
 
 pos: LPAR! NUM COMMA! NUM RPAR! <<#0=createASTlist(_sibling);>>;
-deffinal: ID (POP^ ID | PUSH^ ID)*;
+deffinal: ID ((POP^ | PUSH^) deffinal | );
 def: (pos | ID) PUSH^ deffinal;
 placedef: PLACE^ pos AT! pos;
 
