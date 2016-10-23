@@ -187,9 +187,11 @@ tblock insertBlock(int x, int y, int h, int w) {
 void removeBlock(string id) {
     // TODO: Remove all references to blocks on top of it
     tblock b = g.blocks[id];
-    for (int i = 0; i < b.w; i++)
-        for (int j = 0; j < b.h; j++)
+    for (int i = 0; i < b.w; i++){
+        for (int j = 0; j < b.h; j++){
             g.height[b.y + j][b.x + i] -= 1;
+        }
+    }
     g.blocks.erase(id);
 }
 
@@ -298,7 +300,6 @@ void executePlace(AST *pntr, string id) {
 }
 
 void executeMove(AST *pntr) {
-    // TODO: Move references to blocks on top of it
     string id = pntr->down->kind;
     blockIt it = g.blocks.find(id);
 
