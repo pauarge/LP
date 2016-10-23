@@ -297,6 +297,8 @@ void executePlace(AST *pntr, string id) {
   
     if (g.height[y][x] > 0) {
     cout << "Cannot PLACE a block where there is another block. Use PUSH instead." << endl;
+  } else if(w < 1 and h < 1){
+    cout << "Cannot PLACE a block with height and/or width less than 1." << endl;
   } else {
     if (isUniform(x, y, h, w)) {
       removeBlock(id);
