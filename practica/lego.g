@@ -34,10 +34,12 @@ AST* createASTnode(Attrib* attr,int ttype, char *textt);
 AST *root;
 
 typedef struct {
-    int x, y;
+    int x, y, z;
     int h, w;
-    int height;
 } tblock;
+bool operator==(const tblock &b1, const tblock &b2){
+	return b1.x == b2.x and b1.y == b2.y and b1.z == b2.z and b1.h == b2.h and b1.w == b2.w;
+}
 
 typedef struct {
     int n, m;
@@ -158,11 +160,11 @@ vector<pair<string, tblock> > blocksAbove(string id) {
     vector<pair<string, tblock> > toReturn;
     tblock b = g.blocks[id];
     for (map<string, tblock>::iterator it = g.blocks.begin(); it != g.blocks.end(); it++) {
-        if (it->first != id) {
-            if (it->second.x >= b.x && it->second.x <= b.x + b.w && it->second.y >= b.y && it->second.y <= b.y + b.h) {
-                toReturn.push_back({it->first, it->second});
-            }
-        }
+    	if(it->second.z > b.z){
+    		if (it->second.x >= b.x && it->second.x <= b.x + b.w && it->second.y >= b.y && it->second.y <= b.y + b.h) {
+        		toReturn.push_back({it->first, it->second});
+        	}
+    	}
     }
     return toReturn;
 }
@@ -173,11 +175,12 @@ tblock insertBlock(tblock b) {
             g.height[b.y + j][b.x + i] += 1;
         }
     }
+    b.z = g.height[b.y][b.x];
     return b;
 }
 
 tblock insertBlock(int x, int y, int h, int w) {
-    tblock b = {x, y, h, w};
+    tblock b = {x, y, 0, h, w};
     return insertBlock(b);
 }
 
@@ -492,7 +495,7 @@ void ASTPrint(AST *a) {
 void printBlocks() {
     cout << "BLOCKS:" << endl;
     for (map<string, tblock>::iterator it = g.blocks.begin(); it != g.blocks.end(); it++) {
-        cout << it->first << "=> X=" << it->second.x + 1 << " Y=" << it->second.y + 1 << " W=" << it->second.w << " H="
+        cout << it->first << "=> X=" << it->second.x + 1 << " Y=" << it->second.y + 1 << " Z=" << it->second.z << " W=" << it->second.w << " H="
              << it->second.h << endl;
     }
     cout << endl;
