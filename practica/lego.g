@@ -161,12 +161,14 @@ longpair blocksAbove(string id) {
     longpair toReturn;
     tblock b = g.blocks[id];
     for (map<string, tblock>::iterator it = g.blocks.begin(); it != g.blocks.end(); it++) {
-    	if(it->second.z > b.z){
-    		if (it->second.x >= b.x && it->second.x <= b.x + b.w && it->second.y >= b.y && it->second.y <= b.y + b.h) {
-        		toReturn.first.push_back({it->first, it->second});
-        	}
-    	} else if(it->second == b) {
-    		toReturn.second.push_back(it->first);
+    	if (it->first != id){
+    		if(it->second.z > b.z){
+	    		if (it->second.x >= b.x && it->second.x <= b.x + b.w && it->second.y >= b.y && it->second.y <= b.y + b.h) {
+	        		toReturn.first.push_back({it->first, it->second});
+	        	}
+	    	} else if(it->second == b) {
+	    		toReturn.second.push_back(it->first);
+	    	}
     	}
     }
     return toReturn;
@@ -188,7 +190,6 @@ tblock insertBlock(int x, int y, int h, int w) {
 }
 
 void removeBlock(string id) {
-    // TODO: Remove all references to blocks on top of it
     tblock b = g.blocks[id];
     for (int i = 0; i < b.w; i++){
         for (int j = 0; j < b.h; j++){
@@ -214,7 +215,8 @@ string recPush(AST *pntr, string id, int rec) {
     blockIt itR = g.blocks.find(rId);
     if(itR == g.blocks.end()) return "err"; 
 
-    tblock b;   
+    tblock b;
+    longpair above;
 
     if (pntr->down->kind == "list") {
         w = parseKind(pntr->down->down->kind);
@@ -229,13 +231,30 @@ string recPush(AST *pntr, string id, int rec) {
     }
 
     if (pntr->kind == "PUSH") {
-    	if(lId.length() > 0) removeBlock(lId);
+    	if(lId.length() > 0) {
+    		above = blocksAbove(lId);
+	    	for (int a = 0; a < above.first.size(); a++)
+	        	removeBlock(above.first[a].first);
+    		removeBlock(lId);
+    	}
         pair<int, int> fa = firstAvailable(rId, h, w);
         int x = fa.first;
         int y = fa.second;
         if (x != -1 and y != -1) {
             if (lId.length() > 0) {
-                g.blocks[lId] = insertBlock(x, y, h, w);
+            	int mov_x = x - b.x;
+            	int mov_y = y - b.y;
+            	g.blocks[lId] = insertBlock(x, y, h, w);
+            	for (int a = 0; a < above.first.size(); a++) {
+		            tblock temp = above.first[a].second;
+		            temp.x += mov_x;
+		            temp.y += mov_y;
+		            removeBlock(above.first[a].first);
+		            g.blocks[above.first[a].first] = insertBlock(temp);
+		        }
+		        for (int a = 0; a < above.second.size(); a++) {
+		        	g.blocks[above.second[a]] = g.blocks[id];
+		        }
             } else {
                 g.blocks["U" + to_string(currentUnnamed++)] = insertBlock(x, y, h, w);
             }
@@ -244,7 +263,12 @@ string recPush(AST *pntr, string id, int rec) {
             }
             return "done";
         } else {
-        	if(lId.length() > 0) g.blocks[lId] = insertBlock(b);
+        	if(lId.length() > 0) {
+        		g.blocks[lId] = insertBlock(b);
+        		for (int a = 0; a < above.first.size(); a++){
+	            	g.blocks[above.first[a].first] = insertBlock(above.first[a].second);
+	        	}
+        	}
             return "err";
         }
     } else if (pntr->kind == "POP" and lId.length() > 0) {
@@ -317,8 +341,9 @@ void executeMove(AST *pntr) {
 	    tblock b = it->second;
 	    tblock newBlock = calculateMovement(dir, i, b);
 	    longpair above = blocksAbove(id);
-	    for (int a = 0; a < above.first.size(); a++)
+	    for (int a = 0; a < above.first.size(); a++){
 	        removeBlock(above.first[a].first);
+	    }
 	    removeBlock(id);
 
 	    if (isUniform(newBlock.x, newBlock.y, newBlock.h, newBlock.w)) {
@@ -515,7 +540,7 @@ void printGrid() {
     cout << "GRID (HEIGHTS):" << endl;
     for (int i = 0; i < g.n; i++) {
         for (int j = 0; j < g.m; j++) {
-            cout << setfill('0') << setw(2) << g.height[i][j] << " ";
+            cout << setfill('0') << setw(1) << g.height[i][j] << " ";
         }
         cout << endl;
     }

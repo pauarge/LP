@@ -59,7 +59,7 @@ zzerraction()
 /*
  * D L G tables
  *
- * Generated from: parser.dlg
+ * Generated from: bin/parser.dlg
  *
  * 1989-2001 by  Will Cohen, Terence Parr, and Hank Dietz
  * Purdue University Electrical Engineering
