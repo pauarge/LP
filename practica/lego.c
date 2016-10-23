@@ -80,6 +80,7 @@ typedef struct {
 } Graella;
 
 typedef map<string,tblock>::iterator blockIt;
+typedef pair<vector<pair<string, tblock> >, vector<string> > longpair;
 
 // Global definitions
 Graella g;
@@ -188,14 +189,16 @@ tblock calculateMovement(string dir, int i, tblock b){
   return b;
 }
 
-vector<pair<string, tblock> > blocksAbove(string id) {
-  vector<pair<string, tblock> > toReturn;
+longpair blocksAbove(string id) {
+  longpair toReturn;
   tblock b = g.blocks[id];
   for (map<string, tblock>::iterator it = g.blocks.begin(); it != g.blocks.end(); it++) {
     if(it->second.z > b.z){
       if (it->second.x >= b.x && it->second.x <= b.x + b.w && it->second.y >= b.y && it->second.y <= b.y + b.h) {
-        toReturn.push_back({it->first, it->second});
+        toReturn.first.push_back({it->first, it->second});
       }
+    } else if(it->second == b) {
+      toReturn.second.push_back(it->first);
     }
   }
   return toReturn;
@@ -218,11 +221,12 @@ tblock insertBlock(int x, int y, int h, int w) {
 
 void removeBlock(string id) {
   // TODO: Remove all references to blocks on top of it
-  // TODO: Subtract block height
   tblock b = g.blocks[id];
-  for (int i = 0; i < b.w; i++)
-  for (int j = 0; j < b.h; j++)
-  g.height[b.y + j][b.x + i] -= 1;
+  for (int i = 0; i < b.w; i++){
+    for (int j = 0; j < b.h; j++){
+      g.height[b.y + j][b.x + i] -= 1;
+    }
+  }
   g.blocks.erase(id);
 }
 
@@ -331,7 +335,6 @@ void executePlace(AST *pntr, string id) {
 }
 
 void executeMove(AST *pntr) {
-  // TODO: Move references to blocks on top of it
   string id = pntr->down->kind;
   blockIt it = g.blocks.find(id);
   
@@ -342,22 +345,25 @@ void executeMove(AST *pntr) {
     int i = parseKind(pntr->down->right->right->kind);
     tblock b = it->second;
     tblock newBlock = calculateMovement(dir, i, b);
-    vector<pair<string, tblock> > above = blocksAbove(id);
-    for (int a = 0; a < above.size(); a++)
-    removeBlock(above[a].first);
+    longpair above = blocksAbove(id);
+    for (int a = 0; a < above.first.size(); a++)
+    removeBlock(above.first[a].first);
     removeBlock(id);
     
 	    if (isUniform(newBlock.x, newBlock.y, newBlock.h, newBlock.w)) {
       g.blocks[id] = insertBlock(newBlock);
-      for (int a = 0; a < above.size(); a++) {
-        tblock temp = calculateMovement(dir, i, above[a].second);
-        removeBlock(above[a].first);
-        g.blocks[above[a].first] = insertBlock(temp);
+      for (int a = 0; a < above.first.size(); a++) {
+        tblock temp = calculateMovement(dir, i, above.first[a].second);
+        removeBlock(above.first[a].first);
+        g.blocks[above.first[a].first] = insertBlock(temp);
+      }
+      for (int a = 0; a < above.second.size(); a++) {
+        g.blocks[above.second[a]] = g.blocks[id];
       }
     } else {
       g.blocks[id] = insertBlock(b);
-      for (int a = 0; a < above.size(); a++)
-      g.blocks[above[a].first] = insertBlock(above[a].second);
+      for (int a = 0; a < above.first.size(); a++)
+      g.blocks[above.first[a].first] = insertBlock(above.first[a].second);
       cout << "Movement not allowed." << endl;
     }
   }
