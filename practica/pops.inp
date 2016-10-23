@@ -2,3 +2,7 @@ Grid 5 5
 
 B0 = PLACE (3,3) AT (1,1)
 B4 = (2,2) PUSH B4
+
+WHILE (FITS(B2,2,1,2)) [
+  B2 = (2,1) PUSH B2
+]

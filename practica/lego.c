@@ -280,11 +280,17 @@ bool evaluateCondition(AST *pntr) {
   string oper = pntr->kind;
   if (oper == "FITS") {
     string id = pntr->down->kind;
-    int w = parseKind(pntr->down->right->down->kind);
-    int h = parseKind(pntr->down->right->down->right->kind);
-    int lev = parseKind(pntr->down->right->right->kind) - 1;
-    pair<int, int> fa = firstAvailable(id, h, w, lev);
-    return fa.first != -1 and fa.second != -1;
+    blockIt it = g.blocks.find(id);
+    if(it == g.blocks.end()){
+      cout << "Block " << id << " does not exist." << endl;
+      return false;
+    } else {
+      int w = parseKind(pntr->down->right->down->kind);
+      int h = parseKind(pntr->down->right->down->right->kind);
+      int lev = parseKind(pntr->down->right->right->kind) - 1;
+      pair<int, int> fa = firstAvailable(id, h, w, lev);
+      return fa.first != -1 and fa.second != -1;
+    }
   } else {
     pair<bool,int> c1 = parseCondInt(pntr->down);
     pair<bool,int> c2 = parseCondInt(pntr->down->right);
