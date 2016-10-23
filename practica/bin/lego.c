@@ -583,7 +583,7 @@ void printGrid() {
 int main() {
   root = NULL;
   ANTLR(lego(&root), stdin);
-  ASTPrint(root);
+  //ASTPrint(root);
   executeListInstructions(root);
   printBlocks();
   printGrid();
