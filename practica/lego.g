@@ -62,22 +62,28 @@ int parseKind(string s) {
 }
 
 int blockHeight(string id) {
-    tblock b = g.blocks[id];
-    int height = 0;
-    for (int i = 0; i < b.w; i++) {
-        for (int j = 0; j < b.h; j++) {
-            height = max(height, g.height[b.y + j][b.x + i]);
-        }
+	blockIt it = g.blocks.find(id);
+    if(it == g.blocks.end()){
+    	return -1;
+    } else {
+    	tblock b = g.blocks[id];
+	    int height = 0;
+	    for (int i = 0; i < b.w; i++) {
+	        for (int j = 0; j < b.h; j++) {
+	            height = max(height, g.height[b.y + j][b.x + i]);
+	        }
+	    }
+	    return height;
     }
-    return height;
 }
 
-int parseCondInt(AST *pntr) {
+pair<bool, int> parseCondInt(AST *pntr) {
     if (pntr->kind == "HEIGHT") {
         string id = pntr->down->kind;
-        return blockHeight(id);
+        int height = blockHeight(id);
+        return {height > -1, height};
     } else {
-        return parseKind(pntr->kind);
+        return {true, parseKind(pntr->kind)};
     }
 }
 
@@ -248,10 +254,15 @@ bool evaluateCondition(AST *pntr) {
         pair<int, int> fa = firstAvailable(id, h, w, lev);
         return fa.first != -1 and fa.second != -1;
     } else {
-        int left = parseCondInt(pntr->down);
-        int right = parseCondInt(pntr->down->right);
-        if (oper == ">") return left > right;
-        else return left < right;
+        pair<bool,int> c1 = parseCondInt(pntr->down);
+        pair<bool,int> c2 = parseCondInt(pntr->down->right);
+        if(c1.first && c2.first){
+        	if (oper == ">") return c1.second > c2.second;
+        	else return c1.second < c2.second;
+        } else {
+        	cout << "Invalid condition." << endl;
+        	return false;
+        }
     }
 }
 
@@ -333,11 +344,11 @@ void executeWhile(AST *pntr) {
 
 void executeHeight(AST *pntr) {
     string id = pntr->down->kind;
-    blockIt it = g.blocks.find(id);
-    if(it == g.blocks.end()){
+    int height = blockHeight(id);
+    if (height < 0){
     	cout << "Block " << id << " does not exist." << endl;
     } else {
-    	cout << "Height of block " << id << " is " << blockHeight(id) << "." << endl;
+    	cout << "Height of block " << id << " is " << height << "." << endl;
     }
 }
 
