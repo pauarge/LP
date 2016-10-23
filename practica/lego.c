@@ -244,7 +244,9 @@ string recPush(AST *pntr, string id, int rec) {
   else if (rId == "err") return "err";
   
     blockIt itR = g.blocks.find(rId);
-  if(itR == g.blocks.end()) return "err";    
+  if(itR == g.blocks.end()) return "err"; 
+  
+    tblock b;   
   
     if (pntr->down->kind == "list") {
     w = parseKind(pntr->down->down->kind);
@@ -253,18 +255,18 @@ string recPush(AST *pntr, string id, int rec) {
     lId = pntr->down->kind;
     blockIt itL = g.blocks.find(lId);
     if(itL == g.blocks.end()) return "err";
-    tblock b = itL->second;
+    b = itL->second;
     w = b.w;
     h = b.h;
   }
   
     if (pntr->kind == "PUSH") {
+    if(lId.length() > 0) removeBlock(lId);
     pair<int, int> fa = firstAvailable(rId, h, w);
     int x = fa.first;
     int y = fa.second;
     if (x != -1 and y != -1) {
       if (lId.length() > 0) {
-        removeBlock(lId);
         g.blocks[lId] = insertBlock(x, y, h, w);
       } else {
         g.blocks["U" + to_string(currentUnnamed++)] = insertBlock(x, y, h, w);
@@ -274,6 +276,7 @@ string recPush(AST *pntr, string id, int rec) {
       }
       return "done";
     } else {
+      if(lId.length() > 0) g.blocks[lId] = insertBlock(b);
       return "err";
     }
   } else if (pntr->kind == "POP" and lId.length() > 0) {
@@ -362,8 +365,9 @@ void executeMove(AST *pntr) {
       }
     } else {
       g.blocks[id] = insertBlock(b);
-      for (int a = 0; a < above.first.size(); a++)
-      g.blocks[above.first[a].first] = insertBlock(above.first[a].second);
+      for (int a = 0; a < above.first.size(); a++){
+        g.blocks[above.first[a].first] = insertBlock(above.first[a].second);
+      }
       cout << "Movement not allowed." << endl;
     }
   }
