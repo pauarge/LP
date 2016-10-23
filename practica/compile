@@ -1,0 +1,6 @@
+#!/bin/bash
+
+antlr -gt lego.g
+dlg -ci parser.dlg scan.c
+g++ -o lego lego.c scan.c err.c -I /usr/include/pccts/ -w -std=c++11
+

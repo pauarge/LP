@@ -1,0 +1,13 @@
+Grid 20 10 
+
+B1 = PLACE (2,3) AT (2,2)
+B1 = PLACE (4,4) AT (5,9)
+
+B2 = PLACE (2,3) AT (4,5)
+
+B1 = B2 PUSH B1
+B6 = X2 PUSH B1
+
+HEIGHT (B321)
+
+MOVE R4 EAST 2
