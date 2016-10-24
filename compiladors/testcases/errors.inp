@@ -16,3 +16,7 @@ TOWER456
 WHILE (FITS(B7,2,1,2)) [
   B2 = (2,1) PUSH B2
 ]
+
+BX = PLACE (3,3) AT (1,1)
+BY = PLACE (4,4) AT (1,4)
+BX = BY PUSH BX
