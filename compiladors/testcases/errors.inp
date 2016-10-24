@@ -4,6 +4,7 @@ B1 = PLACE (2,3) AT (2,2)
 B1 = PLACE (4,4) AT (5,9)
 
 B2 = PLACE (2,3) AT (4,5)
+B4 = PLACE (1,1) AT (4,5)
 
 B1 = B2 PUSH B1
 B6 = X2 PUSH B1

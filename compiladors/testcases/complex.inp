@@ -1,5 +1,7 @@
 Grid 20 10 
 
+customFunction
+
 B0 = PLACE (5,5) AT (3,3)
 B1 = PLACE (2,2) AT (1,1)
 
@@ -23,3 +25,11 @@ MOVE B2 WEST 1
 MOVE B2 WEST 1
 
 B0 = B2 PUSH B0
+
+DEF customFunction
+  B10 = PLACE (1,1) AT (9,19)
+  B11 = PLACE (1,1) AT (10, 19)
+  B12 = PLACE (1,1) AT (10, 20)
+  B13 = PLACE (1,1) AT (9,20)
+  B14 = PLACE (1,1) AT (9,21)
+ENDEF

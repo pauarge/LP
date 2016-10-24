@@ -317,7 +317,9 @@ void executePlace(AST *pntr, string id) {
     int x = parseKind(pntr->down->right->down->kind) - 1;
     int y = parseKind(pntr->down->right->down->right->kind) - 1;
 
-    if (g.height[y][x] > 0) {
+    if (y > g.n - 1 or x > g.m - 1) {
+        cout << "Cannot PLACE a block outside the grid." << endl;
+    } else if (g.height[y][x] > 0) {
         cout << "Cannot PLACE a block where there is another block. Use PUSH instead." << endl;
     } else if (w < 1 and h < 1) {
         cout << "Cannot PLACE a block with height and/or width less than 1." << endl;
