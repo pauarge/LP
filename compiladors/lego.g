@@ -335,7 +335,7 @@ void executePlace(AST *pntr, string id) {
             removeBlock(id);
             g.blocks[id] = insertBlock(x, y, h, w);
         } else {
-            cout << "Place operation not allowed." << endl;
+            cout << "PLACE operation not allowed." << endl;
         }
     }
 }
