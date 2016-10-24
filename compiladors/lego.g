@@ -274,6 +274,13 @@ string recPush(AST *pntr, string id, int rec) {
             return "err";
         }
     } else if (pntr->kind == "POP" and lId.length() > 0) {
+        above = blocksAbove(lId);
+        for (int a = 0; a < above.first.size(); a++) {
+            removeBlock(above.first[a].first);
+        }
+        for (int a = 0; a < above.second.size(); a++) {
+            g.blocks.erase(above.second[a]);
+        }
         removeBlock(lId);
         return rId;
     }
