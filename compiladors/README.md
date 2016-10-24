@@ -23,7 +23,7 @@ Removes all old binary files stored in the folder `bin/`.
 
 ### Compile
 
-Does all three compilation steps at one. The final executable will be bin/lego.
+Does all three compilation steps at one. The final executable will be `bin/lego`.
 
 This commands are assuming an standard installation of PCCTS on Ubuntu 16.04. In order to make it work somewhere else, the included directory flag on `g++` command may change. 
 
@@ -73,3 +73,5 @@ Grid representing the numeric height of each cell. By default all numbers are ou
 ~~~~
 cout << setfill('0') << setw(DESIRED WIDTH) << g.height[i][j] << " ";
 ~~~~
+
+**Tests won't pass if width is changed.**
