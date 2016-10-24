@@ -345,7 +345,7 @@ void executeMove(AST *pntr) {
     blockIt it = g.blocks.find(id);
 
     if (it == g.blocks.end()) {
-        cout << "Cannot move block " << id << " because does not exist." << endl;
+        cout << "Cannot MOVE block " << id << " because does not exist." << endl;
     } else {
         string dir = pntr->down->right->kind;
         int i = parseKind(pntr->down->right->right->kind);
@@ -372,7 +372,7 @@ void executeMove(AST *pntr) {
             for (int a = 0; a < above.first.size(); a++) {
                 g.blocks[above.first[a].first] = insertBlock(above.first[a].second);
             }
-            cout << "Movement not allowed." << endl;
+            cout << "MOVE not allowed." << endl;
         }
     }
 }
