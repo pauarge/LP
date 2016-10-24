@@ -255,7 +255,7 @@ string recPush(AST *pntr, string id, int rec) {
                     g.blocks[above.first[a].first] = insertBlock(temp);
                 }
                 for (int a = 0; a < above.second.size(); a++) {
-                    g.blocks[above.second[a]] = g.blocks[id];
+                    g.blocks[above.second[a]] = g.blocks[lId];
                 }
             } else {
                 g.blocks["U" + to_string(currentUnnamed++)] = insertBlock(x, y, h, w);
