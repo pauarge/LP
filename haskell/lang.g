@@ -120,59 +120,21 @@ int main() {
 
 #lexclass START
 
-#token AND "AND"
-#token AT "AT"
-#token COMMA "\,"
-#token DEF "DEF"
-#token EAST "EAST"
-#token ENDEF "ENDEF"
-#token EQ "\="
-#token FITS "FITS"
-#token GRID "Grid"
-#token GTHA "\>"
-#token HEIGHT "HEIGHT"
-#token LCLA "\["
-#token LPAR "\("
-#token LTHA "\<"
-#token MOVE "MOVE"
-#token NORTH "NORTH"
-#token PLACE "PLACE"
-#token POP "POP"
-#token PUSH "PUSH"
-#token RCLA "\]"
-#token RPAR "\)"
-#token SOUTH "SOUTH"
-#token SPACE "[\ \n]" << zzskip();>>
-#token WEST "WEST"
-#token WHILE "WHILE"
+#token DD ":"
+#token ELSE "ELSE"
+#token END "END"
+#token EQ "="
+#token GTHA ">"
+#token IF "IF"
+#token INPUT "INPUT"
+#token MIN "MIN"
+#token "NOT"
+#token THEN "THEN"
 
 #token NUM "[0-9]+"
 #token ID "[a-zA-Z][a-zA-Z0-9]*"
 
 
-pos: LPAR! NUM COMMA! NUM RPAR! <<#0=createASTlist(_sibling);>>;
-deffinal: ID ((POP^ | PUSH^) deffinal | );
-def: (pos | ID) PUSH^ deffinal;
-placedef: PLACE^ pos AT! pos;
-
-fits: FITS^ LPAR! ID COMMA! fitspos COMMA! NUM RPAR!;
-condWhile: (fits | height (LT^ | GT^ | ASSIG^) NUM) (AND^ condWhile | );
-fitspos: NUM COMMA! NUM <<#0=createASTlist(_sibling);>>;
-
-expr: (height (LTHA^ | GTHA^) NUM | fits);
-cond: expr (AND^ expr)*;
-
-loopops: asig<<#0=createASTlist(_sibling);>>;
-
-asig: ID (EQ^ (placedef | def) | );
-movement: MOVE^ ID (NORTH | SOUTH | EAST | WEST) NUM; 
-loop: WHILE^ LPAR! cond RPAR! LCLA! loopops RCLA!;
-height: HEIGHT^ LPAR! ID RPAR!;
-
-definition: DEF^ ID ops ENDEF!;
-
-grid: GRID^ NUM NUM;
 ops: (asig | movement | loop | height)* <<#0=createASTlist(_sibling);>>;
-defs: (definition)* <<#0=createASTlist(_sibling);>>;
 
-lego: grid ops defs <<#0=createASTlist(_sibling);>>;
+lang: ops <<#0=createASTlist(_sibling);>>;
