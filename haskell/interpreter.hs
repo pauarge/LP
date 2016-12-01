@@ -18,7 +18,10 @@ data NExpr a = 	Var Ident | Const a | Plus (NExpr a) (NExpr a) |
 								Minus (NExpr a) (NExpr a) | Times (NExpr a) (NExpr a)
 								
 
---instance Show a => Show (Command a) where
---	show = customShow
+instance Show a => Show (Command a) where
+	show a = customShow a 0
 
 
+customShow::Show a => Command a -> Int -> String
+customShow (Assign i a) t = (tabulate t) ++ "ASSIGN"
+customShow (Input i) t = (tabulate t) ++ "INPUT"
