@@ -3,10 +3,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
-#include <map>
-#include <vector>
 #include <cstdlib>
-#include <cmath>
 
 using namespace std;
 
@@ -111,7 +108,7 @@ void ASTPrint(AST *a) {
 
 int main() {
     root = NULL;
-    ANTLR(lego(&root), stdin);
+    ANTLR(lang(&root), stdin);
     ASTPrint(root);
 }
 
@@ -120,21 +117,46 @@ int main() {
 
 #lexclass START
 
-#token DD ":"
+#token AS "\:\="
+#token DD "\:"
 #token ELSE "ELSE"
+#token EMPTY "EMPTY"
 #token END "END"
-#token EQ "="
-#token GTHA ">"
+#token EQ "\="
+#token GTH ">"
 #token IF "IF"
 #token INPUT "INPUT"
 #token MIN "MIN"
-#token "NOT"
+#token NOT "NOT"
+#token POP "POP"
+#token PRINT "PRINT"
+#token PUSH "PUSH"
+#token SIZE "SIZE"
+#token SPACE "[\ \n]" << zzskip();>>
 #token THEN "THEN"
+
+// TODO: IDs/NUMs compatibles amb coma flotant
 
 #token NUM "[0-9]+"
 #token ID "[a-zA-Z][a-zA-Z0-9]*"
 
 
-ops: (asig | movement | loop | height)* <<#0=createASTlist(_sibling);>>;
+asig: ID AS^ NUM;
+inp: INPUT^ ID;
+prnt: PRINT^ ID;
+empt: EMPTY^ ID;
+psh: PUSH^ ID NUM;
+pop: POP^ ID ID;
+siz: SIZE^ ID ID;
 
-lang: ops <<#0=createASTlist(_sibling);>>;
+andexpr: AND^ bexpr bexpr;
+orexpr: OR^ orexpr orexpr;
+notepxr: NOT^ bexpr;
+gth: GTH^ nexpr nexpr;
+equ: EQ^ nexpr nexpr;
+
+bexpr: (andexpr | orexpr | notepxr | gth | equ);
+
+// TODO: Command seq
+
+lang: (asig | inp | prnt | empt | psh | pop | siz)* <<#0=createASTlist(_sibling);>>;
