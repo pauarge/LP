@@ -1,0 +1,6 @@
+IF X > 2 OR Z > 7 OR Z = 82 THEN 
+  Y := 67 + 1
+  Z := 23
+ELSE 
+  Y := 12 
+END

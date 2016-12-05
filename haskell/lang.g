@@ -117,8 +117,10 @@ int main() {
 
 #lexclass START
 
+#token AND "AND"
 #token AS "\:\="
 #token DD "\:"
+#token DO "DO"
 #token ELSE "ELSE"
 #token EMPTY "EMPTY"
 #token END "END"
@@ -126,14 +128,18 @@ int main() {
 #token GTH ">"
 #token IF "IF"
 #token INPUT "INPUT"
-#token MIN "MIN"
+#token MIN "\-"
 #token NOT "NOT"
+#token OR "OR"
+#token PLU "\+"
 #token POP "POP"
 #token PRINT "PRINT"
 #token PUSH "PUSH"
 #token SIZE "SIZE"
 #token SPACE "[\ \n]" << zzskip();>>
+#token TIM "\*"
 #token THEN "THEN"
+#token WHILE "WHILE"
 
 // TODO: IDs/NUMs compatibles amb coma flotant
 
@@ -141,7 +147,7 @@ int main() {
 #token ID "[a-zA-Z][a-zA-Z0-9]*"
 
 
-asig: ID AS^ NUM;
+asig: ID AS^ nexpr;
 inp: INPUT^ ID;
 prnt: PRINT^ ID;
 empt: EMPTY^ ID;
@@ -149,14 +155,14 @@ psh: PUSH^ ID NUM;
 pop: POP^ ID ID;
 siz: SIZE^ ID ID;
 
-andexpr: AND^ bexpr bexpr;
-orexpr: OR^ orexpr orexpr;
-notepxr: NOT^ bexpr;
-gth: GTH^ nexpr nexpr;
-equ: EQ^ nexpr nexpr;
-
-bexpr: (andexpr | orexpr | notepxr | gth | equ);
+nexpr: (ID | NUM) ((PLU^ | MIN^ | TIM^) nexpr | );
+bexpr: nexpr (GTH^ | EQ^) nexpr ((AND^ | OR^) bexpr | );
 
 // TODO: Command seq
 
-lang: (asig | inp | prnt | empt | psh | pop | siz)* <<#0=createASTlist(_sibling);>>;
+smpl: (asig | inp | prnt | empt | psh | pop | siz);
+
+loop: WHILE^ bexpr DO! lang END;
+bcons: IF^ bexpr THEN! lang (ELSE! lang | ) END!;
+
+lang: (smpl | bcons | loop)* <<#0=createASTlist(_sibling);>>;

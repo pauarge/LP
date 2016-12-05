@@ -11,7 +11,7 @@ type Ident = String
 data Command a = Assign Ident a | Input Ident | Print Ident | 
                  Empty Ident | Push Ident a | Pop Ident Ident | 
                  Size Ident Ident | Seq [Command a] | 
-                 Cond (BExpr a) (Command a) | 
+                 Cond (BExpr a) (Command a) (Command a) | 
                  Loop (BExpr a) (Command a)
 
 data BExpr a = AND (BExpr a) (BExpr a) | OR (BExpr a) (BExpr a) | 
@@ -35,7 +35,8 @@ showCommand (Pop i j) t = (tabulate t) ++ "POP " ++ (show i) ++ " " ++ (show j)
 showCommand (Size i j) t = (tabulate t) ++ "SIZE " ++ (show i) ++ " " ++ (show j)
 showCommand (Seq []) t = ""
 showCommand (Seq (c:cs)) t = (tabulate t) ++ (show c) ++ "\n" ++ (show cs) 
-showCommand (Cond b c) t = (tabulate t) ++ (show b) ++ (showCommand c 1)
+showCommand (Cond b c0 c1) t = (tabulate t) ++ "IF " ++ (show b) ++ " THEN " ++ 
+                               (showCommand c0 1) ++ " ELSE " ++ (showCommand c1 1)
 showCommand (Loop b c) t = (tabulate t) ++ (show b) ++ (showCommand c 1)
 
 
