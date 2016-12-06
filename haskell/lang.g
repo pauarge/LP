@@ -30,8 +30,6 @@ AST* createASTnode(Attrib* attr,int ttype, char *textt);
 // Global structures
 AST *root;
 
-// Global definitions
-
 // function to fill token information
 void zzcr_attr(Attrib *attr, int type, char *text) {
 /*  if (type == ID) {
@@ -156,9 +154,8 @@ pop: POP^ ID ID;
 siz: SIZE^ ID ID;
 
 nexpr: (ID | NUM) ((PLU^ | MIN^ | TIM^) nexpr | );
-bexpr: nexpr (GTH^ | EQ^) nexpr ((AND^ | OR^) bexpr | );
-
-// TODO: Command seq
+bsub: nexpr (GTH^ | EQ^) nexpr ((AND^ | OR^) bexpr | );
+bexpr: (NOT^ | ) bsub;
 
 smpl: (asig | inp | prnt | empt | psh | pop | siz);
 
