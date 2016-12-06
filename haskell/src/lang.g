@@ -32,14 +32,16 @@ AST *root;
 
 // function to fill token information
 void zzcr_attr(Attrib *attr, int type, char *text) {
-/*  if (type == ID) {
-	attr->kind = "id";
+  if (type == ID) {
+	attr->kind = "tree_id";
 	attr->text = text;
-  }
-  else {*/
+  } else if (type == NUM) {
+    attr->kind = "tree_const";
+    attr->text = text;
+  } else {
     attr->kind = text;
     attr->text = "";
-//  }
+  }
 }
 
 
@@ -73,7 +75,7 @@ AST *child(AST *a, int n) {
 }
 
 
-// PRINT FUNCTIONS
+// Helper functions
 void ASTPrintIndent(AST *a, string s) {
     if (a == NULL) return;
 
@@ -95,6 +97,7 @@ void ASTPrintIndent(AST *a, string s) {
     }
 }
 
+// Print functions
 void ASTPrint(AST *a) {
     while (a != NULL) {
         cout << " ";
@@ -106,24 +109,75 @@ void ASTPrint(AST *a) {
 
 void commandPrint(AST *a) {
     if (a != NULL){
-        if (a->kind == "list"){
+        if (a->kind == ":="){
+            cout << "Assign \"" << a->down->text << "\" " << a->down->right->text;
+        } else if(a->kind == "INPUT"){
+            cout << "Input \"" << a->down->text << "\"";
+        } else if(a->kind == "PRINT"){
+            cout << "Print \"" << a->down->text << "\"";
+        } else if(a->kind == "EMPTY"){
+            cout << "Empty \"" << a->down->text << "\"";
+        } else if(a->kind == "PUSH"){
+            cout << "Push \"" << a->down->text << "\" " << a->down->right->text;
+        } else if(a->kind == "POP"){
+            cout << "Pop \"" << a->down->text << "\" " << a->down->right->text;
+        } else if(a->kind == "SIZE"){
+            cout << "Size \"" << a->down->text << "\" " << a->down->right->text;
+        } else if (a->kind == "list"){
             cout << "Seq [";
-
             AST* pntr = a->down;
-
             while(pntr != NULL){
-                if(pntr->kind == ":="){
-                    cout << "Assign \"" << pntr->down->kind << "\" "
-                } else if(pntr->kind == "INPUT"){
-                    cout << "Input \"" << pntr->down->kind << "\"";
-                } else if(pntr->kind == "PRINT"){
-                    cout << "Print \"" << pntr->down->kind << "\"";
-                }
+                commandPrint(pntr);
                 if(pntr->right) cout << ", ";
                 pntr = pntr->right;
             }
-
-            cout << "]" << endl;
+            cout << "]";
+        } else if(a->kind == "IF"){
+            cout << "Cond ("; 
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ") (";
+            commandPrint(a->down->right->right);
+            cout << ")";
+        } else if(a->kind == "LOOP"){
+            cout << "Loop (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "AND"){
+            cout << "AND (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "OR"){
+            cout << "OR (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "NOT"){
+            cout << "NOT (";
+            commandPrint(a->down);
+            cout << ")";
+        } else if(a->kind == ">"){
+            cout << "Gt (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "="){
+            cout << "Eq (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "tree_id"){
+            cout << "Var \"" << a->text << "\""; 
+        } else if(a->kind == "tree_const"){
+            cout << "Const " << a->text; 
         }
     }
 }
@@ -133,6 +187,7 @@ int main() {
     ANTLR(lang(&root), stdin);
     ASTPrint(root);
     commandPrint(root);
+    cout << endl;
 }
 
 
