@@ -113,7 +113,7 @@ void commandPrint(AST *a) {
 
             while(pntr != NULL){
                 if(pntr->kind == ":="){
-
+                    cout << "Assign \"" << pntr->down->kind << "\" "
                 } else if(pntr->kind == "INPUT"){
                     cout << "Input \"" << pntr->down->kind << "\"";
                 } else if(pntr->kind == "PRINT"){

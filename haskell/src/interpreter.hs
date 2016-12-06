@@ -13,13 +13,16 @@ data Command a = Assign Ident a | Input Ident | Print Ident |
                  Size Ident Ident | Seq [Command a] | 
                  Cond (BExpr a) (Command a) (Command a) | 
                  Loop (BExpr a) (Command a)
+                 deriving (Read)
 
 data BExpr a = AND (BExpr a) (BExpr a) | OR (BExpr a) (BExpr a) | 
                NOT (BExpr a) | Gt (NExpr a) (NExpr a) | 
                Eq (NExpr a) (NExpr a)
+               deriving (Read)
 
 data NExpr a = Var Ident | Const a | Plus (NExpr a) (NExpr a) | 
                Minus (NExpr a) (NExpr a) | Times (NExpr a) (NExpr a)
+               deriving (Read)
                                 
 
 instance Show a => Show (Command a) where
