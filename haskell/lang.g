@@ -151,7 +151,7 @@ asig: ID AS^ nexpr;
 inp: INPUT^ ID;
 prnt: PRINT^ ID;
 empt: EMPTY^ ID;
-psh: PUSH^ ID NUM;
+psh: PUSH^ ID (NUM | ID);
 pop: POP^ ID ID;
 siz: SIZE^ ID ID;
 
@@ -162,7 +162,7 @@ bexpr: nexpr (GTH^ | EQ^) nexpr ((AND^ | OR^) bexpr | );
 
 smpl: (asig | inp | prnt | empt | psh | pop | siz);
 
-loop: WHILE^ bexpr DO! lang END;
+loop: WHILE^ bexpr DO! lang END!;
 bcons: IF^ bexpr THEN! lang (ELSE! lang | ) END!;
 
 lang: (smpl | bcons | loop)* <<#0=createASTlist(_sibling);>>;
