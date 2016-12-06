@@ -104,10 +104,35 @@ void ASTPrint(AST *a) {
     cout << endl;
 }
 
+void commandPrint(AST *a) {
+    if (a != NULL){
+        if (a->kind == "list"){
+            cout << "Seq [";
+
+            AST* pntr = a->down;
+
+            while(pntr != NULL){
+                if(pntr->kind == ":="){
+
+                } else if(pntr->kind == "INPUT"){
+                    cout << "Input \"" << pntr->down->kind << "\"";
+                } else if(pntr->kind == "PRINT"){
+                    cout << "Print \"" << pntr->down->kind << "\"";
+                }
+                if(pntr->right) cout << ", ";
+                pntr = pntr->right;
+            }
+
+            cout << "]" << endl;
+        }
+    }
+}
+
 int main() {
     root = NULL;
     ANTLR(lang(&root), stdin);
     ASTPrint(root);
+    commandPrint(root);
 }
 
 

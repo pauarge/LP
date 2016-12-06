@@ -26,18 +26,17 @@ instance Show a => Show (Command a) where
     show a = showCommand a 0
 
 showCommand::Show a => Command a -> Int -> String
-showCommand (Assign i a) t = (tabulate t) ++ (show i) ++ " := " ++ (show a)
-showCommand (Input i) t = (tabulate t) ++ "INPUT " ++ (show i)
-showCommand (Print i) t = (tabulate t) ++ "PRINT " ++ (show i)
-showCommand (Empty i) t = (tabulate t) ++ "EMPTY " ++ (show i)
-showCommand (Push i a) t = (tabulate t) ++ "PUSH " ++ (show i) ++ " " ++ (show a)
-showCommand (Pop i j) t = (tabulate t) ++ "POP " ++ (show i) ++ " " ++ (show j)
-showCommand (Size i j) t = (tabulate t) ++ "SIZE " ++ (show i) ++ " " ++ (show j)
-showCommand (Seq []) t = ""
-showCommand (Seq (c:cs)) t = (tabulate t) ++ (show c) ++ "\n" ++ (show cs) 
+showCommand (Assign i a) t = (tabulate t) ++ i ++ " := " ++ (show a) ++ "\n"
+showCommand (Input i) t = (tabulate t) ++ "INPUT " ++ i ++ "\n"
+showCommand (Print i) t = (tabulate t) ++ "PRINT " ++ i ++ "\n"
+showCommand (Empty i) t = (tabulate t) ++ "EMPTY " ++ i ++ "\n"
+showCommand (Push i a) t = (tabulate t) ++ "PUSH " ++ i ++ " " ++ (show a) ++ "\n"
+showCommand (Pop i j) t = (tabulate t) ++ "POP " ++ i ++ " " ++ j ++ "\n"
+showCommand (Size i j) t = (tabulate t) ++ "SIZE " ++ i ++ " " ++ j ++ "\n"
+showCommand (Seq c) t = (tabulate t) ++ (show $ concatMap show c) ++ "\n"
 showCommand (Cond b c0 c1) t = (tabulate t) ++ "IF " ++ (show b) ++ " THEN " ++ 
-                               (showCommand c0 1) ++ " ELSE " ++ (showCommand c1 1)
-showCommand (Loop b c) t = (tabulate t) ++ (show b) ++ (showCommand c 1)
+                               (showCommand c0 1) ++ " ELSE " ++ (showCommand c1 1) ++ "\n"
+showCommand (Loop b c) t = (tabulate t) ++ (show b) ++ (showCommand c 1) ++ "\n"
 
 
 instance Show a => Show (BExpr a) where
