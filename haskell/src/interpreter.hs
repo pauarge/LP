@@ -62,3 +62,20 @@ showNExpr (Const a) t = (tabulate t) ++ (show a)
 showNExpr (Plus x y) t = (tabulate t) ++ (show x) ++ " + " ++ (show y)
 showNExpr (Minus x y) t = (tabulate t) ++ (show x) ++ " - " ++ (show y)
 showNExpr (Times x y) t = (tabulate t) ++ (show x) ++ " * " ++ (show y)
+
+
+data SymTable a = SymTable [(Ident, Either a [a])]
+                  deriving (Show)
+
+--setVar :: SymTable a => SymTable a -> Ident -> a -> SymTable a
+--setVar t i a = 
+
+--getVar :: SymTable a => SymTable a -> Ident -> a
+--getVar t i = 2
+
+--class Evaluable e where
+  --eval :: (Num a, Ord a) => (Ident -> Maybe a) -> (e a) -> (Either String a)
+
+  --typeCheck :: (Ident -> String) -> (e a) -> Bool
+
+--interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]),SymTable a, [a])

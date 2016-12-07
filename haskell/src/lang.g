@@ -185,7 +185,7 @@ void commandPrint(AST *a) {
 int main() {
     root = NULL;
     ANTLR(lang(&root), stdin);
-    ASTPrint(root);
+    //ASTPrint(root);
     commandPrint(root);
     cout << endl;
 }

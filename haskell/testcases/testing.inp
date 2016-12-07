@@ -1,6 +1,8 @@
-IF X > 2 OR Z > 7 OR Z = 82 THEN 
-  Y := 67 + 1
-  Z := 23
-ELSE 
-  Y := 12 
+INPUT X
+INPUT Y
+
+IF X > 0 THEN
+  Z := 1
+ELSE
+  Z := 1
 END
