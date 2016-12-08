@@ -64,14 +64,20 @@ showNExpr (Minus x y) t = (tabulate t) ++ (show x) ++ " - " ++ (show y)
 showNExpr (Times x y) t = (tabulate t) ++ (show x) ++ " * " ++ (show y)
 
 
-data SymTable a = SymTable [(Ident, Either a [a])]
+data SymTable a = ST [(Ident, Either a [a])]
                   deriving (Show)
 
---setVar :: SymTable a => SymTable a -> Ident -> a -> SymTable a
---setVar t i a = 
+setVar :: SymTable a -> Ident -> Either a [a] -> SymTable a
+setVar (ST xs) i a = ST ([(i, a)] ++ clearList xs i)
+  where
+    clearList [] _ = []
+    clearList (x:xs) i
+      | fst x == i = clearList xs i
+      | otherwise = x : clearList xs i
 
---getVar :: SymTable a => SymTable a -> Ident -> a
---getVar t i = 2
+
+getVar :: SymTable a -> Ident -> Maybe (Either a [a])
+getVar (ST xs) i = lookup i xs
 
 --class Evaluable e where
   --eval :: (Num a, Ord a) => (Ident -> Maybe a) -> (e a) -> (Either String a)
@@ -79,3 +85,5 @@ data SymTable a = SymTable [(Ident, Either a [a])]
   --typeCheck :: (Ident -> String) -> (e a) -> Bool
 
 --interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]),SymTable a, [a])
+
+--interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
