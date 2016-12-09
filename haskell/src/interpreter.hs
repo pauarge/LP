@@ -90,16 +90,25 @@ instance Evaluable BExpr where
     eval f (Gt x y) = castBool (applyOp (>) (eval f x) (eval f y))
     eval f (Eq x y) = castBool (applyOp (==) (eval f x) (eval f y))
 
-    typeCheck _ _ = True
+    typeCheck f (AND a b) = (typeCheck f a) && (typeCheck f b)
+    typeCheck f (OR a b) = (typeCheck f b) && (typeCheck f b)
+    typeCheck f (Gt x y) = (typeCheck f x) && (typeCheck f y)
+    typeCheck f (Eq x y) = (typeCheck f x) && (typeCheck f y)
+
 
 instance Evaluable NExpr where
-    --eval f (Var a) =
+    --eval f (Var id)
+    --    | f id == 
     eval _ (Const a) = Right a
     eval f (Plus x y) = applyOp (+) (eval f x) (eval f y)
     eval f (Minus x y) = applyOp (-) (eval f x) (eval f y)
     eval f (Times x y) = applyOp (*) (eval f x) (eval f y)
 
-    typeCheck _ _ = True
+    typeCheck f (Var id) = if f id == "isValid" then True else False
+    typeCheck f (Const a) = True
+    typeCheck f (Plus x y) = (typeCheck f x) && (typeCheck f y)
+    typeCheck f (Minus x y) = (typeCheck f x) && (typeCheck f y)
+    typeCheck f (Times x y) = (typeCheck f x) && (typeCheck f y)
 
 
 castBool (Right True) = Right 1
