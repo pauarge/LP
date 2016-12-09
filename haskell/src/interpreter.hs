@@ -60,8 +60,8 @@ instance Show a => Show (NExpr a) where
     show a = showNExpr a 0
 
 showNExpr :: Show a => NExpr a -> Int -> String
-showNExpr (Var a) t = (tabulate t) ++ (show a)
-showNExpr (Const a) t = (tabulate t) ++ (show a)
+showNExpr (Var id) t = (tabulate t) ++ (show id)
+showNExpr (Const c) t = (tabulate t) ++ (show c)
 showNExpr (Plus x y) t = (tabulate t) ++ (show x) ++ " + " ++ (show y)
 showNExpr (Minus x y) t = (tabulate t) ++ (show x) ++ " - " ++ (show y)
 showNExpr (Times x y) t = (tabulate t) ++ (show x) ++ " * " ++ (show y)
@@ -70,20 +70,28 @@ showNExpr (Times x y) t = (tabulate t) ++ (show x) ++ " * " ++ (show y)
 data SymTable a = ST [(Ident, Either a [a])]
                   deriving (Show)
 
-setVar :: SymTable a -> Ident -> Either a [a] -> SymTable a
-setVar (ST xs) i a = ST ([(i, a)] ++ clearList xs i)
+setVar :: SymTable a -> Ident -> Either String a -> SymTable a
+setVar t _ (Left _) = t  
+setVar (ST xs) i (Right x) = ST ([(i, Left x)] ++ clearList xs i)
     where
         clearList [] _ = []
         clearList (x:xs) i
             | fst x == i = xs
             | otherwise = x : clearList xs i
 
-getVar :: SymTable a -> Ident -> Maybe (Either a [a])
-getVar (ST xs) i = lookup i xs
+
+getVar :: SymTable a -> Ident -> Maybe a
+getVar (ST xs) i = getTop (lookup i xs)
+
+
+getTop :: Maybe (Either a [a]) -> Maybe a
+getTop (Just (Left x)) = Just x
+getTop (Just (Right (x:xs))) = Just x
+getTop Nothing = Nothing
 
 
 class Evaluable e where
-    eval :: (Num a, Ord a) => (Ident -> Maybe a) -> (e a) -> (Either String a)
+    eval :: (Num a, Ord a) => (Ident -> Maybe a) -> (e a) -> Either String a
     typeCheck :: (Ident -> String) -> (e a) -> Bool
 
 instance Evaluable BExpr where
@@ -115,7 +123,7 @@ instance Evaluable NExpr where
     eval f (Minus x y) = applyOp (-) (eval f x) (eval f y)
     eval f (Times x y) = applyOp (*) (eval f x) (eval f y)
 
-    typeCheck f (Var id) = if f id == "isValid" then True else False
+    typeCheck f (Var id) = if f id == "single" then True else False
     typeCheck f (Const a) = True
     typeCheck f (Plus x y) = (typeCheck f x) && (typeCheck f y)
     typeCheck f (Minus x y) = (typeCheck f x) && (typeCheck f y)
@@ -129,16 +137,31 @@ castBool (Left err) = Left err
 applyOp f (Right x) (Right y) = Right (f x y)
 applyOp f (Right _) (Left e) = Left e
 applyOp f (Left e) (Right _) = Left e
-applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1) 
+applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 
+getTypeCheck :: Maybe (Either a [a]) -> String
+getTypeCheck (Just (Left _)) = "single"
+getTypeCheck (Just (Right _)) = "stack"
+getTypeCheck Nothing = "invalid"
+
+
+getPrintable :: Maybe a -> Either String [a]
+getPrintable (Just x) = Right [x]
+getPrintable Nothing = Left "Could not print that."
 
 
 interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]), SymTable a, [a])
---interpretCommand t inp (Assign i exp) = ((Right []), (setVar t i (Right (eval exp))), inp)
-interpretCommand t (x:xs) (Input i) = ((Right []), (setVar t i (Left x)), xs)
-interpretCommand t inp@(x:xs) (Print i) = ((Right inp), t, inp)
-interpretCommand t inp@(x:xs) (Empty i) = ((Right inp), t, inp)
-interpretCommand t inp@(x:xs) (Push i a) = ((Right inp), t, inp)
+interpretCommand t inp (Assign i exp) = (Right [], setVar t i (eval (getVar t) exp), inp)
+interpretCommand t (x:xs) (Input i) = (Right [], setVar t i (Right x), xs)
+interpretCommand t inp (Print i) = (getPrintable (getVar t i), t, inp)
+--interpretCommand t inp@(x:xs) (Empty i) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Push i a) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Pop i a) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Size i a) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Seq i a) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Cond i a) = (Right inp, t, inp)
+--interpretCommand t inp@(x:xs) (Loop i a) = (Right inp, t, inp)
+
 
 --interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
