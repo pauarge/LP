@@ -1,6 +1,8 @@
 -- TODO: Afegir comentaris!
 --       Eliminar parèntesis innecessaris
 --       Separar en subseccions
+--       Typechecks on commands
+--       Evaluables
 
 
 tabulate :: Int -> String
@@ -9,7 +11,7 @@ tabulate n = take (2*n) (cycle "  ")
 
 type Ident = String
 
-data Command a = Assign Ident a | Input Ident | Print Ident | 
+data Command a = Assign Ident (NExpr a) | Input Ident | Print Ident | 
                  Empty Ident | Push Ident a | Pop Ident Ident | 
                  Size Ident Ident | Seq [Command a] | 
                  Cond (BExpr a) (Command a) (Command a) | 
@@ -30,7 +32,7 @@ instance Show a => Show (Command a) where
     show a = showCommand a 0
 
 showCommand :: Show a => Command a -> Int -> String
-showCommand (Assign i a) t = (tabulate t) ++ i ++ " := " ++ (show a) ++ "\n"
+showCommand (Assign i exp) t = (tabulate t) ++ i ++ " := " ++ (show exp) ++ "\n"
 showCommand (Input i) t = (tabulate t) ++ "INPUT " ++ i ++ "\n"
 showCommand (Print i) t = (tabulate t) ++ "PRINT " ++ i ++ "\n"
 showCommand (Empty i) t = (tabulate t) ++ "EMPTY " ++ i ++ "\n"
@@ -86,8 +88,15 @@ class Evaluable e where
 
 instance Evaluable BExpr where
     eval f (AND a b) = applyOp (*) (eval f a) (eval f b)
-    --eval f (OR a b) = 
-    --eval f (NOT a) = Left "asdf"
+    -- TODO: Error handling on OR
+    eval f (OR a b)
+        | eval f a == Right 1 || eval f b == Right 1 = Right 1
+        | otherwise = Right 0   
+    -- TODO: Better error handling on NOT
+    eval f (NOT a)
+        | eval f a == Right 0 = Right 1
+        | eval f a == Right 1 = Right 0
+        | otherwise = Left "Error :("
     eval f (Gt x y) = castBool (applyOp (>) (eval f x) (eval f y))
     eval f (Eq x y) = castBool (applyOp (==) (eval f x) (eval f y))
 
@@ -98,8 +107,9 @@ instance Evaluable BExpr where
 
 
 instance Evaluable NExpr where
-    --eval f (Var id)
-    --    | f id == 
+    eval f (Var id) = case f id of
+        Just x -> Right x
+        _ -> Left ("Could not find " ++ id)
     eval _ (Const a) = Right a
     eval f (Plus x y) = applyOp (+) (eval f x) (eval f y)
     eval f (Minus x y) = applyOp (-) (eval f x) (eval f y)
@@ -122,8 +132,10 @@ applyOp f (Left e) (Right _) = Left e
 applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1) 
 
 
+
+
 interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]), SymTable a, [a])
-interpretCommand t inp@(x:xs) (Assign i a) = ((Right inp), t, inp)
+--interpretCommand t inp (Assign i exp) = ((Right []), (setVar t i (Right (eval exp))), inp)
 interpretCommand t (x:xs) (Input i) = ((Right []), (setVar t i (Left x)), xs)
 interpretCommand t inp@(x:xs) (Print i) = ((Right inp), t, inp)
 interpretCommand t inp@(x:xs) (Empty i) = ((Right inp), t, inp)
