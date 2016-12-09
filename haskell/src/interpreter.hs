@@ -73,11 +73,15 @@ data SymTable a = ST [(Ident, Either a [a])]
 setVar :: SymTable a -> Ident -> Either String a -> SymTable a
 setVar t _ (Left _) = t  
 setVar (ST xs) i (Right x) = ST ([(i, Left x)] ++ clearList xs i)
-    where
-        clearList [] _ = []
-        clearList (x:xs) i
-            | fst x == i = xs
-            | otherwise = x : clearList xs i
+
+
+emptyStack :: SymTable a -> Ident -> SymTable a
+emptyStack (ST xs) i = ST (([(i, Right [])]) ++ clearList xs i)
+
+clearList [] _ = []
+clearList (x:xs) i
+    | fst x == i = xs
+    | otherwise = x : clearList xs i
 
 
 getVar :: SymTable a -> Ident -> Maybe a
@@ -155,7 +159,7 @@ interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either
 interpretCommand t inp (Assign i exp) = (Right [], setVar t i (eval (getVar t) exp), inp)
 interpretCommand t (x:xs) (Input i) = (Right [], setVar t i (Right x), xs)
 interpretCommand t inp (Print i) = (getPrintable (getVar t i), t, inp)
---interpretCommand t inp@(x:xs) (Empty i) = (Right inp, t, inp)
+interpretCommand t inp (Empty i) = (Right [], emptyStack t i, inp)
 --interpretCommand t inp@(x:xs) (Push i a) = (Right inp, t, inp)
 --interpretCommand t inp@(x:xs) (Pop i a) = (Right inp, t, inp)
 --interpretCommand t inp@(x:xs) (Size i a) = (Right inp, t, inp)
