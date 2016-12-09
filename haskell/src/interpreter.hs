@@ -3,6 +3,7 @@
 --       Separar en subseccions
 --       Typechecks on commands
 --       Evaluables
+--       Substitute clear list for filter
 
 
 tabulate :: Int -> String
@@ -12,7 +13,7 @@ tabulate n = take (2*n) (cycle "  ")
 type Ident = String
 
 data Command a = Assign Ident (NExpr a) | Input Ident | Print Ident | 
-                 Empty Ident | Push Ident a | Pop Ident Ident | 
+                 Empty Ident | Push Ident (NExpr a) | Pop Ident Ident | 
                  Size Ident Ident | Seq [Command a] | 
                  Cond (BExpr a) (Command a) (Command a) | 
                  Loop (BExpr a) (Command a)
@@ -72,11 +73,36 @@ data SymTable a = ST [(Ident, Either a [a])]
 
 setVar :: SymTable a -> Ident -> Either String a -> SymTable a
 setVar t _ (Left _) = t  
-setVar (ST xs) i (Right x) = ST ([(i, Left x)] ++ clearList xs i)
+setVar (ST xs) id (Right val) = ST ([(id, Left val)] ++ clearList xs id)
+
+
+setStack :: SymTable a -> Ident -> Either String a -> SymTable a
+setStack t _ (Left _) = t
+setStack t@(ST xs) id (Right val) = ST ([(id, Right (setStack' (getElem t id) val))] ++ clearList xs id)
+    where
+        setStack' (Just (Right xs)) val = val : xs  
+        setStack' _ _ = []
+
+
+--popStack :: SymTable a -> Ident -> Ident -> SymTable a
+--popStack t@(ST xs) idO idD = setVar (ST ([(idO, Right (popStack' (getElem t idO)))] ++ clearList xs idO)) idD 
+--    where
+--        popStack' (Just (Right (x:xs))) = xs
+--        popStack' _ = [] 
+--        popStack'' (Just (Right (x:xs))) = x
+--        popStack'' _ = [] 
 
 
 emptyStack :: SymTable a -> Ident -> SymTable a
-emptyStack (ST xs) i = ST (([(i, Right [])]) ++ clearList xs i)
+emptyStack (ST xs) id = ST (([(id, Right [])]) ++ clearList xs id)
+
+
+stackSize :: Num a => SymTable a -> Ident -> Either String a
+stackSize t id = stackSize' (getElem t id)
+    where
+        stackSize' (Just (Right xs)) = Right (sum (map (\_ -> 1) xs))
+        stackSize' _ = Left "There is no stack with that name"
+
 
 clearList [] _ = []
 clearList (x:xs) i
@@ -85,7 +111,11 @@ clearList (x:xs) i
 
 
 getVar :: SymTable a -> Ident -> Maybe a
-getVar (ST xs) i = getTop (lookup i xs)
+getVar (ST xs) id = getTop (lookup id xs)
+
+
+getElem :: SymTable a -> Ident -> Maybe (Either a [a])
+getElem (ST xs) id = lookup id xs
 
 
 getTop :: Maybe (Either a [a]) -> Maybe a
@@ -128,7 +158,7 @@ instance Evaluable NExpr where
     eval f (Times x y) = applyOp (*) (eval f x) (eval f y)
 
     typeCheck f (Var id) = if f id == "single" then True else False
-    typeCheck f (Const a) = True
+    typeCheck _ (Const _) = True
     typeCheck f (Plus x y) = (typeCheck f x) && (typeCheck f y)
     typeCheck f (Minus x y) = (typeCheck f x) && (typeCheck f y)
     typeCheck f (Times x y) = (typeCheck f x) && (typeCheck f y)
@@ -160,10 +190,15 @@ interpretCommand t inp (Assign i exp) = (Right [], setVar t i (eval (getVar t) e
 interpretCommand t (x:xs) (Input i) = (Right [], setVar t i (Right x), xs)
 interpretCommand t inp (Print i) = (getPrintable (getVar t i), t, inp)
 interpretCommand t inp (Empty i) = (Right [], emptyStack t i, inp)
---interpretCommand t inp@(x:xs) (Push i a) = (Right inp, t, inp)
+interpretCommand t inp (Push i exp) = (Right [], setStack t i (eval (getVar t) exp), inp)
 --interpretCommand t inp@(x:xs) (Pop i a) = (Right inp, t, inp)
---interpretCommand t inp@(x:xs) (Size i a) = (Right inp, t, inp)
---interpretCommand t inp@(x:xs) (Seq i a) = (Right inp, t, inp)
+interpretCommand t inp (Size idO idD) = (Right [], setVar t idD (stackSize t idO), inp)
+interpretCommand t inp (Seq []) = (Right [], t, inp)
+interpretCommand t inp (Seq (c:cs)) = case interpretCommand t inp c of
+    (Left err, resSt, resInp) -> (Left err, t, inp)
+    (Right res, resSt, resInp) -> case interpretCommand resSt resInp (Seq cs) of
+        (Left err, resSt', resInp') -> (Left err, resSt, resInp)
+        (Right res', resSt', resInp') -> (Right (res ++ res'), resSt', resInp')
 --interpretCommand t inp@(x:xs) (Cond i a) = (Right inp, t, inp)
 --interpretCommand t inp@(x:xs) (Loop i a) = (Right inp, t, inp)
 
