@@ -1,5 +1,6 @@
 -- TODO: Afegir comentaris!
 --       Eliminar parèntesis innecessaris
+--       Separar en subseccions
 
 
 tabulate :: Int -> String
@@ -122,7 +123,10 @@ applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 
 interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]), SymTable a, [a])
-interpretCommand t i c = ((Right i), t, i)
-
+interpretCommand t inp@(x:xs) (Assign i a) = ((Right inp), t, inp)
+interpretCommand t (x:xs) (Input i) = ((Right []), (setVar t i (Left x)), xs)
+interpretCommand t inp@(x:xs) (Print i) = ((Right inp), t, inp)
+interpretCommand t inp@(x:xs) (Empty i) = ((Right inp), t, inp)
+interpretCommand t inp@(x:xs) (Push i a) = ((Right inp), t, inp)
 
 --interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
