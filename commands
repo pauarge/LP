@@ -1,9 +1,0 @@
-setenv PATH /opt/pccts/bin:$PATH
-
-antlr example0.g
-dlg parser.dlg scan.c
-gcc -o example0 example0.c scan.c err.c -I /home/soft/PCCTS_v1.33/include/
-
-antlr -gt example1.g
-dlg -ci parser.dlg scan.c
-g++ -o example1 example1.c scan.c err.c -I /home/soft/PCCTS_v1.33/include/ -w
