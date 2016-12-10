@@ -200,9 +200,9 @@ interpretCommand st inp (Push id ne) =
     else
         (Left "Type error on PUSH statement", st, inp)
 
---interpretCommand st inp (Pop idO idD) = case popStack st idO of
---    Right (st, x) -> (Right [], setVar st idD x, inp)
---    Left err -> (Left err, st, inp)
+interpretCommand st inp (Pop idO idD) = case popStack st idO of
+    Right (st, x) -> (Right [], setVar st idD (Right x), inp)
+    Left err -> (Left err, st, inp)
 
 interpretCommand t inp (Size idO idD) = (Right [], setVar t idD (stackSize t idO), inp)
 interpretCommand t inp (Seq []) = (Right [], t, inp)
