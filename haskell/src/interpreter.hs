@@ -6,10 +6,10 @@
 --       Substitute clear list for filter
 --       Change ST -> SymTable
 
+import System.IO
 
-tabulate :: Int -> String
-tabulate n = take (2*n) (cycle "  ")
 
+-- Types & datatypes declarations
 
 type Ident = String
 
@@ -28,49 +28,51 @@ data BExpr a = AND (BExpr a) (BExpr a) | OR (BExpr a) (BExpr a) |
 data NExpr a = Var Ident | Const a | Plus (NExpr a) (NExpr a) | 
                Minus (NExpr a) (NExpr a) | Times (NExpr a) (NExpr a)
                deriving (Read)
-                                
+
+data SymTable a = ST [(Ident, Either a [a])]
+                  deriving (Show)
+
 
 instance Show a => Show (Command a) where
     show a = showCommand a 0
 
 showCommand :: Show a => Command a -> Int -> String
-showCommand (Assign i exp) t = (tabulate t) ++ i ++ " := " ++ (show exp) ++ "\n"
-showCommand (Input i) t = (tabulate t) ++ "INPUT " ++ i ++ "\n"
-showCommand (Print i) t = (tabulate t) ++ "PRINT " ++ i ++ "\n"
-showCommand (Empty i) t = (tabulate t) ++ "EMPTY " ++ i ++ "\n"
-showCommand (Push i a) t = (tabulate t) ++ "PUSH " ++ i ++ " " ++ (show a) ++ "\n"
-showCommand (Pop i j) t = (tabulate t) ++ "POP " ++ i ++ " " ++ j ++ "\n"
-showCommand (Size i j) t = (tabulate t) ++ "SIZE " ++ i ++ " " ++ j ++ "\n"
-showCommand (Seq c) t = (tabulate t) ++ (show $ concatMap show c) ++ "\n"
-showCommand (Cond b c0 c1) t = (tabulate t) ++ "IF " ++ (show b) ++ " THEN " ++ 
-                               (showCommand c0 1) ++ " ELSE " ++ (showCommand c1 1) ++ "\n"
-showCommand (Loop b c) t = (tabulate t) ++ (show b) ++ (showCommand c 1) ++ "\n"
+showCommand (Assign i exp) t = tabulate t ++ i ++ " := " ++ show exp ++ "\n"
+showCommand (Input i) t = tabulate t ++ "INPUT " ++ i ++ "\n"
+showCommand (Print i) t = tabulate t ++ "PRINT " ++ i ++ "\n"
+showCommand (Empty i) t = tabulate t ++ "EMPTY " ++ i ++ "\n"
+showCommand (Push i a) t = tabulate t ++ "PUSH " ++ i ++ " " ++ show a ++ "\n"
+showCommand (Pop i j) t = tabulate t ++ "POP " ++ i ++ " " ++ j ++ "\n"
+showCommand (Size i j) t = tabulate t ++ "SIZE " ++ i ++ " " ++ j ++ "\n"
+showCommand (Seq c) t = tabulate t ++ (show $ concatMap show c) ++ "\n"
+showCommand (Cond b c0 c1) t = tabulate t ++ "IF " ++ show b ++ " THEN " ++ 
+                               showCommand c0 (t + 1) ++ " ELSE " ++ showCommand c1 (t + 1) ++ "\n"
+showCommand (Loop b c) t = tabulate t ++ show b ++ showCommand c (t + 1) ++ "\n"
 
 
 instance Show a => Show (BExpr a) where
     show a = showBExpr a 0
 
 showBExpr :: Show a => BExpr a -> Int -> String
-showBExpr (AND a b) t = (tabulate t) ++ (show a) ++ " AND " ++ (show b)
-showBExpr (OR a b) t = (tabulate t) ++ (show a) ++ " OR " ++ (show b)
-showBExpr (NOT a) t = (tabulate t) ++ "NOT " ++ (show a)
-showBExpr (Gt x y) t = (tabulate t) ++ (show x) ++ " > " ++ (show y)
-showBExpr (Eq x y) t = (tabulate t) ++ (show x) ++ " = " ++ (show y)
+showBExpr (AND a b) t = tabulate t ++ show a ++ " AND " ++ show b
+showBExpr (OR a b) t = tabulate t ++ show a ++ " OR " ++ show b
+showBExpr (NOT a) t = tabulate t ++ "NOT " ++ (show a)
+showBExpr (Gt x y) t = tabulate t ++ show x ++ " > " ++ show y
+showBExpr (Eq x y) t = tabulate t ++ show x ++ " = " ++ show y
 
 
 instance Show a => Show (NExpr a) where
     show a = showNExpr a 0
 
 showNExpr :: Show a => NExpr a -> Int -> String
-showNExpr (Var id) t = (tabulate t) ++ (show id)
-showNExpr (Const c) t = (tabulate t) ++ (show c)
-showNExpr (Plus x y) t = (tabulate t) ++ (show x) ++ " + " ++ (show y)
-showNExpr (Minus x y) t = (tabulate t) ++ (show x) ++ " - " ++ (show y)
-showNExpr (Times x y) t = (tabulate t) ++ (show x) ++ " * " ++ (show y)
+showNExpr (Var id) t = tabulate t ++ id
+showNExpr (Const c) t = tabulate t ++ show c
+showNExpr (Plus x y) t = tabulate t ++ show x ++ " + " ++ show y
+showNExpr (Minus x y) t = tabulate t ++ show x ++ " - " ++ show y
+showNExpr (Times x y) t = tabulate t ++ show x ++ " * " ++ show y
 
-
-data SymTable a = ST [(Ident, Either a [a])]
-                  deriving (Show)
+tabulate :: Int -> String
+tabulate n = take (2*n) (cycle "  ")
 
 setVar :: SymTable a -> Ident -> Either String a -> SymTable a
 setVar t _ (Left _) = t  
@@ -213,3 +215,14 @@ interpretCommand t inp (Loop cond exp) = case eval (getVar t) cond of
 interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
 interpretProgram inp com = case interpretCommand (ST []) inp com of
     (res, _, _) -> res
+
+
+main = do
+    program <- getLine
+    putStrLn ("Use integers [0] or reals [1]?")
+    numType <- getLine
+    putStrLn ("What kind of execution you want?")
+    putStrLn ("0 - Manual execution")
+    putStrLn ("1 - Unique test")
+    putStrLn ("2 - Multiple test")
+    putStrLn ("Hello World")
