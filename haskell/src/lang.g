@@ -110,7 +110,9 @@ void ASTPrint(AST *a) {
 void commandPrint(AST *a) {
     if (a != NULL){
         if (a->kind == ":="){
-            cout << "Assign \"" << a->down->text << "\" " << a->down->right->text;
+            cout << "Assign \"" << a->down->text << "\" (";
+            commandPrint(a->down->right);
+            cout << ")";
         } else if(a->kind == "INPUT"){
             cout << "Input \"" << a->down->text << "\"";
         } else if(a->kind == "PRINT"){
@@ -118,11 +120,13 @@ void commandPrint(AST *a) {
         } else if(a->kind == "EMPTY"){
             cout << "Empty \"" << a->down->text << "\"";
         } else if(a->kind == "PUSH"){
-            cout << "Push \"" << a->down->text << "\" " << a->down->right->text;
+            cout << "Push \"" << a->down->text << "\" (";
+            commandPrint(a->down->right);
+            cout << ")";
         } else if(a->kind == "POP"){
-            cout << "Pop \"" << a->down->text << "\" " << a->down->right->text;
+            cout << "Pop \"" << a->down->text << "\" \"" << a->down->right->text << "\"";
         } else if(a->kind == "SIZE"){
-            cout << "Size \"" << a->down->text << "\" " << a->down->right->text;
+            cout << "Size \"" << a->down->text << "\" \"" << a->down->right->text << "\"";
         } else if (a->kind == "list"){
             cout << "Seq [";
             AST* pntr = a->down;
@@ -140,7 +144,7 @@ void commandPrint(AST *a) {
             cout << ") (";
             commandPrint(a->down->right->right);
             cout << ")";
-        } else if(a->kind == "LOOP"){
+        } else if(a->kind == "WHILE"){
             cout << "Loop (";
             commandPrint(a->down);
             cout << ") (";
@@ -178,6 +182,24 @@ void commandPrint(AST *a) {
             cout << "Var \"" << a->text << "\""; 
         } else if(a->kind == "tree_const"){
             cout << "Const " << a->text; 
+        } else if(a->kind == "+") {
+            cout << "Plus (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "-") {
+            cout << "Minus (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
+        } else if(a->kind == "*") {
+            cout << "Times (";
+            commandPrint(a->down);
+            cout << ") (";
+            commandPrint(a->down->right);
+            cout << ")";
         }
     }
 }
