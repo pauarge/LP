@@ -21,6 +21,7 @@ let com1 = Input "y"
 let com2 = Empty "p"
 let com3 = Push "p" (Var "x")
 let com4 = Push "p" (Var "y")
-let com = Seq [com0, com1, com2, com3, com4]
+let com5 = Print "sw"
+let com = Seq [com0, com1, com2, com3, com4, com5]
 
 interpretCommand st inp com

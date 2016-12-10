@@ -1,9 +1,3 @@
--- TODO: Afegir comentaris!
---       Eliminar parèntesis innecessaris
---       Separar en subseccions
---       Typechecks on commands
---       Errors on symtable setters (basically return either String Symtable)
-
 import System.IO
 
 
@@ -98,21 +92,21 @@ getElem (SymTable xs) id = lookup id xs
 
 -- SymTable setters
 
-setVar :: SymTable a -> Ident -> Either String a -> SymTable a
-setVar st _ (Left _) = st  
-setVar (SymTable xs) id (Right val) = SymTable ((id, Left val) : clearList xs id)
+setVar :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
+setVar _ _ (Left err) = Left err  
+setVar (SymTable xs) id (Right val) = Right (SymTable ((id, Left val) : clearList xs id))
 
 
 -- TODO: "Type error when pushing to a single"
-setStack :: SymTable a -> Ident -> Either String a -> SymTable a
-setStack st _ (Left _) = st
-setStack st@(SymTable xs) id (Right val) = SymTable ((id, Right (setStack' (getElem st id) val)) : clearList xs id)
-    where
-        setStack' (Just (Right xs)) val = val : xs  
-        setStack' _ _ = []
+setStack :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
+setStack _ _ (Left err) = Left err
+setStack st@(SymTable xs) id (Right val) = 
+    Right (SymTable ((id, Right (setStack' (getElem st id) val)) : clearList xs id))
+        where
+            setStack' (Just (Right xs)) val = val : xs  
+            setStack' _ _ = []
 
 
--- TODO: "Empty stack" error
 popStack :: SymTable a -> Ident -> Either String (SymTable a, a)
 popStack st@(SymTable xs) id = case getElem st id of
     Just (Right []) -> Left ("Empty stack " ++ id)
@@ -184,37 +178,55 @@ interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either
 
 interpretCommand st inp (Assign id ne) = 
     if typeCheck (getType st) ne then
-        (Right [], setVar st id (eval (getVar st) ne), inp)
+       case setVar st id (eval (getVar st) ne) of
+            Right st' -> (Right [], st', inp)
+            Left err -> (Left err, st, inp)
     else
         (Left "Type error on := statement", st, inp)
 
-interpretCommand st (x:xs) (Input id) = (Right [], setVar st id (Right x), xs)
+interpretCommand st inp@(x:xs) (Input id) = case setVar st id (Right x) of
+    Right st' -> (Right [], st', xs)
+    Left err -> (Left err, st, inp)
 
-interpretCommand st inp (Print id) = (getPrintable (getVar st id), st, inp)
+interpretCommand st inp (Print id) = case getElem st id of
+    Just (Left x) -> (Right [x], st, inp)
+    Just (Right x) -> (Right x, st, inp)
+    Nothing -> (Left ("Undefined variable " ++ id), st, inp)
 
 interpretCommand st inp (Empty id) = (Right [], emptyStack st id, inp)
 
 interpretCommand st inp (Push id ne) = 
     if typeCheck (getType st) ne then
-        (Right [], setStack st id (eval (getVar st) ne), inp)
+        case setStack st id (eval (getVar st) ne) of
+            Right st' -> (Right [], st', inp)
+            Left err -> (Left err, st, inp)
     else
         (Left "Type error on PUSH statement", st, inp)
 
 interpretCommand st inp (Pop idO idD) = case popStack st idO of
-    Right (st, x) -> (Right [], setVar st idD (Right x), inp)
+    Right (st, x) -> case setVar st idD (Right x) of
+        Right st' -> (Right [], st', inp)
+        Left err -> (Left err, st, inp)
     Left err -> (Left err, st, inp)
 
-interpretCommand t inp (Size idO idD) = (Right [], setVar t idD (stackSize t idO), inp)
+interpretCommand st inp (Size idO idD) = case stackSize st idO of
+    Right x -> case setVar st idD (Right x) of
+        Right st' -> (Right [], st', inp)
+        Left err -> (Left err, st, inp)
+    Left err -> (Left err, st, inp)
+
 interpretCommand t inp (Seq []) = (Right [], t, inp)
 interpretCommand t inp (Seq (c:cs)) = case interpretCommand t inp c of
     (Left err, resSt, resInp) -> (Left err, t, inp)
     (Right res, resSt, resInp) -> case interpretCommand resSt resInp (Seq cs) of
         (Left err, resSt', resInp') -> (Left err, resSt, resInp)
         (Right res', resSt', resInp') -> (Right (res ++ res'), resSt', resInp')
+
 interpretCommand t inp (Cond cond exp exp') = case eval (getVar t) cond of
     Left err -> (Left err, t, inp)
     Right 1 -> interpretCommand t inp exp
     Right 0 -> interpretCommand t inp exp' 
+
 interpretCommand t inp (Loop cond exp) = case eval (getVar t) cond of
     Left err -> (Left err, t, inp)
     Right 1 -> interpretCommand t inp (Seq [exp, (Loop cond exp)])
@@ -250,17 +262,12 @@ applyOp f (Left e) (Right _) = Left e
 applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 
-getPrintable :: Maybe a -> Either String [a]
-getPrintable (Just x) = Right [x]
-getPrintable Nothing = Left "Could not print that."
-
-
 
 -- Main
 
 main = do
     program <- getLine
-    --let p = read program
+    let p = read program :: Int
     putStrLn "Use integers [0] or reals [1]?"
     numType <- getLine
     putStrLn "What kind of execution you want?"
