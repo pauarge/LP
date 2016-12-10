@@ -4,6 +4,7 @@
 --       Typechecks on commands
 --       Evaluables
 --       Substitute clear list for filter
+--       Change ST -> SymTable
 
 
 tabulate :: Int -> String
@@ -199,8 +200,14 @@ interpretCommand t inp (Seq (c:cs)) = case interpretCommand t inp c of
     (Right res, resSt, resInp) -> case interpretCommand resSt resInp (Seq cs) of
         (Left err, resSt', resInp') -> (Left err, resSt, resInp)
         (Right res', resSt', resInp') -> (Right (res ++ res'), resSt', resInp')
---interpretCommand t inp@(x:xs) (Cond i a) = (Right inp, t, inp)
---interpretCommand t inp@(x:xs) (Loop i a) = (Right inp, t, inp)
+interpretCommand t inp (Cond cond exp exp') = case eval (getVar t) cond of
+    Left err -> (Left err, t, inp)
+    Right 1 -> interpretCommand t inp exp
+    Right 0 -> interpretCommand t inp exp' 
+interpretCommand t inp (Loop cond exp) = case eval (getVar t) cond of
+    Left err -> (Left err, t, inp)
+    Right 1 -> interpretCommand t inp (Seq [exp, (Loop cond exp)])
+    Right 0 -> (Right [], t, inp)
 
 
---interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
+interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
