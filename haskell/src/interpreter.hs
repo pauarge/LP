@@ -211,3 +211,5 @@ interpretCommand t inp (Loop cond exp) = case eval (getVar t) cond of
 
 
 interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
+interpretProgram inp com = case interpretCommand (ST []) inp com of
+    (res, _, _) -> res
