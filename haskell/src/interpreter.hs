@@ -265,12 +265,39 @@ applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 -- Main
 
+exec p inp numType = case numType of
+    0 -> case interpretProgram (read inp :: [Int]) (read p :: Command Int) of
+        Right x -> show x
+        Left x -> show x
+    1 -> case interpretProgram (read inp :: [Float]) (read p :: Command Float) of
+        Right x -> show x
+        Left x -> show x
+
+
+main :: IO ()
 main = do
-    program <- getLine
-    let p = read program :: Int
-    putStrLn "Use integers [0] or reals [1]?"
-    numType <- getLine
+    handler <- openFile "programhs.txt" ReadMode
+    p <- hGetLine handler
+
+    putStrLn "What kind of numbers do you want to use?"
+    putStrLn "  [0] Integer"
+    putStrLn "  [1] Float"
+    nt <- getLine
+    let numType = read nt :: Int
+
     putStrLn "What kind of execution you want?"
-    putStrLn "0 - Manual execution"
-    putStrLn "1 - Unique test"
-    putStrLn "2 - Multiple test"
+    putStrLn "  [0] Manual execution"
+    putStrLn "  [1] Unique test"
+    putStrLn "  [2] Multiple test"
+    et <- getLine
+    let execType = read et :: Int
+
+    case execType of
+        0 -> do
+            putStrLn "Enter a list of values"
+            lv <- getLine
+            putStrLn $ exec p lv numType
+        1 -> putStrLn $ exec p "" numType
+        2 -> putStrLn $ exec p "" numType
+
+    hClose handler    
