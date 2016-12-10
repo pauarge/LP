@@ -33,6 +33,8 @@ data SymTable a = ST [(Ident, Either a [a])]
                   deriving (Show)
 
 
+-- Show functions for custom datatypes
+
 instance Show a => Show (Command a) where
     show a = showCommand a 0
 
@@ -70,6 +72,9 @@ showNExpr (Const c) t = tabulate t ++ show c
 showNExpr (Plus x y) t = tabulate t ++ show x ++ " + " ++ show y
 showNExpr (Minus x y) t = tabulate t ++ show x ++ " - " ++ show y
 showNExpr (Times x y) t = tabulate t ++ show x ++ " * " ++ show y
+
+
+-- Helper functions
 
 tabulate :: Int -> String
 tabulate n = take (2*n) (cycle "  ")
@@ -216,13 +221,13 @@ interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
 interpretProgram inp com = case interpretCommand (ST []) inp com of
     (res, _, _) -> res
 
-
 main = do
     program <- getLine
-    putStrLn ("Use integers [0] or reals [1]?")
+    putStrLn program
+    putStrLn "Use integers [0] or reals [1]?"
     numType <- getLine
-    putStrLn ("What kind of execution you want?")
-    putStrLn ("0 - Manual execution")
-    putStrLn ("1 - Unique test")
-    putStrLn ("2 - Multiple test")
-    putStrLn ("Hello World")
+    putStrLn "What kind of execution you want?"
+    putStrLn "0 - Manual execution"
+    putStrLn "1 - Unique test"
+    putStrLn "2 - Multiple test"
+    putStrLn "Hello World"
