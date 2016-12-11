@@ -32,16 +32,16 @@ AST *root;
 
 // function to fill token information
 void zzcr_attr(Attrib *attr, int type, char *text) {
-  if (type == ID) {
-	attr->kind = "tree_id";
-	attr->text = text;
-  } else if (type == NUM) {
-    attr->kind = "tree_const";
-    attr->text = text;
-  } else {
-    attr->kind = text;
-    attr->text = "";
-  }
+    if (type == ID) {
+        attr->kind = "tree_id";
+        attr->text = text;
+    } else if (type == NUM) {
+        attr->kind = "tree_const";
+        attr->text = text;
+    } else {
+        attr->kind = text;
+        attr->text = "";
+    }
 }
 
 
@@ -108,93 +108,93 @@ void ASTPrint(AST *a) {
 }
 
 void commandPrint(AST *a) {
-    if (a != NULL){
-        if (a->kind == ":="){
+    if (a != NULL) {
+        if (a->kind == ":=") {
             cout << "Assign \"" << a->down->text << "\" (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "INPUT"){
+        } else if (a->kind == "INPUT") {
             cout << "Input \"" << a->down->text << "\"";
-        } else if(a->kind == "PRINT"){
+        } else if (a->kind == "PRINT") {
             cout << "Print \"" << a->down->text << "\"";
-        } else if(a->kind == "EMPTY"){
+        } else if (a->kind == "EMPTY") {
             cout << "Empty \"" << a->down->text << "\"";
-        } else if(a->kind == "PUSH"){
+        } else if (a->kind == "PUSH") {
             cout << "Push \"" << a->down->text << "\" (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "POP"){
+        } else if (a->kind == "POP") {
             cout << "Pop \"" << a->down->text << "\" \"" << a->down->right->text << "\"";
-        } else if(a->kind == "SIZE"){
+        } else if (a->kind == "SIZE") {
             cout << "Size \"" << a->down->text << "\" \"" << a->down->right->text << "\"";
-        } else if (a->kind == "list"){
+        } else if (a->kind == "list") {
             cout << "Seq [";
-            AST* pntr = a->down;
-            while(pntr != NULL){
+            AST *pntr = a->down;
+            while (pntr != NULL) {
                 commandPrint(pntr);
-                if(pntr->right) cout << ", ";
+                if (pntr->right) cout << ", ";
                 pntr = pntr->right;
             }
             cout << "]";
-        } else if(a->kind == "IF"){
-            cout << "Cond ("; 
+        } else if (a->kind == "IF") {
+            cout << "Cond (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ") (";
             commandPrint(a->down->right->right);
             cout << ")";
-        } else if(a->kind == "WHILE"){
+        } else if (a->kind == "WHILE") {
             cout << "Loop (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "AND"){
+        } else if (a->kind == "AND") {
             cout << "AND (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "OR"){
+        } else if (a->kind == "OR") {
             cout << "OR (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "NOT"){
+        } else if (a->kind == "NOT") {
             cout << "NOT (";
             commandPrint(a->down);
             cout << ")";
-        } else if(a->kind == ">"){
+        } else if (a->kind == ">") {
             cout << "Gt (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "="){
+        } else if (a->kind == "=") {
             cout << "Eq (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "tree_id"){
-            cout << "Var \"" << a->text << "\""; 
-        } else if(a->kind == "tree_const"){
-            cout << "Const " << a->text; 
-        } else if(a->kind == "+") {
+        } else if (a->kind == "tree_id") {
+            cout << "Var \"" << a->text << "\"";
+        } else if (a->kind == "tree_const") {
+            cout << "Const " << a->text;
+        } else if (a->kind == "+") {
             cout << "Plus (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "-") {
+        } else if (a->kind == "-") {
             cout << "Minus (";
             commandPrint(a->down);
             cout << ") (";
             commandPrint(a->down->right);
             cout << ")";
-        } else if(a->kind == "*") {
+        } else if (a->kind == "*") {
             cout << "Times (";
             commandPrint(a->down);
             cout << ") (";
