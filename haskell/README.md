@@ -37,3 +37,18 @@ Since random numbers are generated on the Haskell program, GHC's System.Random l
 This file automates the testing process of the whole project. To execute it, the whole program must be compiled (hence, `./compile.sh` must be executed before this script).
 
 It takes a path to a file as a parameter and executes the program contained on that file (parsing it, generating the intermediate programhs.txt and redirecting it through the interpreter). The output of the interpreter is displayed on the stdout.
+
+#### Examples
+
+`./test.sh testcases/sample0.inp`
+
+`./test.sh testcases/sample1.inp # infinte loop`
+
+## Program input
+
+The Haskell program expects the following input:
+
+* `O`/`1` for using Integers or Reals
+* `0`/`1`/`2` for the execution type
+* In a Manual execution, it expects a list of valid values on the Haskell format (`[1,2,3,4]`)
+* In a Multiple tests execution, it expects the number of executions (a natural number).
