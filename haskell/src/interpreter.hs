@@ -152,6 +152,7 @@ instance Evaluable BExpr where
 
     typeCheck f (AND be be') = (typeCheck f be) && (typeCheck f be')
     typeCheck f (OR be be') = (typeCheck f be) && (typeCheck f be')
+    typeCheck f (NOT be) = typeCheck f be
     typeCheck f (Gt ne ne') = (typeCheck f ne) && (typeCheck f ne')
     typeCheck f (Eq ne ne') = (typeCheck f ne) && (typeCheck f ne')
 
