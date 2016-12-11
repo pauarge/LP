@@ -43,7 +43,8 @@ showCommand (Size idO idD) t = tabulate t ++ "SIZE " ++ idO ++ " " ++ idD ++ "\n
 showCommand (Seq cs) t = tabulate t ++ (show $ concatMap show cs) ++ "\n"
 showCommand (Cond be c c') t = tabulate t ++ "IF " ++ show be ++ " THEN " ++ 
                                showCommand c (t + 1) ++ " ELSE " ++ showCommand c' (t + 1) ++ "\n"
-showCommand (Loop be c) t = tabulate t ++ show be ++ showCommand c (t + 1) ++ "\n"
+showCommand (Loop be c) t = tabulate t ++ "WHILE " ++ show be ++ "\n" ++ "DO" ++ "\n" ++
+                            showCommand c (t + 1) ++ "END" ++ "\n" 
 
 
 instance Show a => Show (BExpr a) where
@@ -215,22 +216,31 @@ interpretCommand st inp (Size idO idD) = case stackSize st idO of
         Left err -> (Left err, st, inp)
     Left err -> (Left err, st, inp)
 
-interpretCommand t inp (Seq []) = (Right [], t, inp)
-interpretCommand t inp (Seq (c:cs)) = case interpretCommand t inp c of
-    (Left err, resSt, resInp) -> (Left err, t, inp)
+interpretCommand st inp (Seq []) = (Right [], st, inp)
+interpretCommand st inp (Seq (c:cs)) = case interpretCommand st inp c of
+    (Left err, _, _) -> (Left err, st, inp)
     (Right res, resSt, resInp) -> case interpretCommand resSt resInp (Seq cs) of
-        (Left err, resSt', resInp') -> (Left err, resSt, resInp)
+        (Left err, _, _) -> (Left err, resSt, resInp)
         (Right res', resSt', resInp') -> (Right (res ++ res'), resSt', resInp')
 
-interpretCommand t inp (Cond cond exp exp') = case eval (getVar t) cond of
-    Left err -> (Left err, t, inp)
-    Right 1 -> interpretCommand t inp exp
-    Right 0 -> interpretCommand t inp exp' 
+interpretCommand st inp (Cond cond exp exp') = 
+    if typeCheck (getType st) cond then
+        case eval (getVar st) cond of
+            Left err -> (Left err, st, inp)
+            Right 1 -> interpretCommand st inp exp
+            Right 0 -> interpretCommand st inp exp'
+    else
+        (Left "Type error on conditional statement", st, inp)
 
-interpretCommand t inp (Loop cond exp) = case eval (getVar t) cond of
-    Left err -> (Left err, t, inp)
-    Right 1 -> interpretCommand t inp (Seq [exp, (Loop cond exp)])
-    Right 0 -> (Right [], t, inp)
+interpretCommand st inp (Loop cond exp) = 
+    if typeCheck (getType st) cond then
+        case eval (getVar st) cond of
+            Left err -> (Left err, st, inp)
+            Right 1 -> interpretCommand st inp (Seq [exp, (Loop cond exp)])
+            --Right 1 -> interpretCommand st inp (Seq [Loop cond exp])
+            Right 0 -> (Right [], st, inp)
+    else
+        (Left "Type error on loop conditional statement", st, inp)
 
 
 interpretProgram :: (Num a, Ord a) => [a] -> Command a -> (Either String [a])
