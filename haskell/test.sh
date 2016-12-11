@@ -5,7 +5,8 @@ if [ $# -eq 0 ]; then
 elif [ $# -eq 1 ]; then
 	INP=$(readlink -f "$1")
 	bin/lang < "$INP" > programhs.txt
-	bin/interpreter
+	bin/program
+	rm programhs.txt
 else 
 	echo "Too much arguments"
 fi

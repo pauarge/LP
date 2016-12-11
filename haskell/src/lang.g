@@ -241,9 +241,7 @@ int main() {
 #token THEN "THEN"
 #token WHILE "WHILE"
 
-// TODO: IDs/NUMs compatibles amb coma flotant
-
-#token NUM "[0-9]+"
+#token NUM "[0-9]+ { . [0-9]+ }"
 #token ID "[a-zA-Z][a-zA-Z0-9]*"
 
 
