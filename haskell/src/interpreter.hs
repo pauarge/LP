@@ -1,4 +1,5 @@
 import System.IO
+import System.Random
 
 
 
@@ -273,14 +274,16 @@ applyOp f (Left e) (Right _) = Left e
 applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 
+genRand range seed = randomRs range (mkStdGen seed)
+
 
 -- Main
 
 exec p inp numType = case numType of
-    0 -> case interpretProgram (read inp :: [Int]) (read p :: Command Int) of
+    0 -> case interpretProgram ((read inp :: [Integer]) ++ (genRand (-999, 999) 1)) (read p :: Command Integer) of
         Right x -> show x
         Left x -> show x
-    1 -> case interpretProgram (read inp :: [Float]) (read p :: Command Float) of
+    1 -> case interpretProgram (read inp :: [Double]) (read p :: Command Double) of
         Right x -> show x
         Left x -> show x
 
@@ -292,7 +295,7 @@ main = do
 
     putStrLn "What kind of numbers do you want to use?"
     putStrLn "  [0] Integer"
-    putStrLn "  [1] Float"
+    putStrLn "  [1] Real"
     nt <- getLine
     let numType = read nt :: Int
 
@@ -308,7 +311,7 @@ main = do
             putStrLn "Enter a list of values"
             lv <- getLine
             putStrLn $ exec p lv numType
-        1 -> putStrLn $ exec p "" numType
-        2 -> putStrLn $ exec p "" numType
+        1 -> putStrLn $ exec p "[]" numType
+        2 -> putStrLn $ exec p "[]" numType
 
     hClose handler    

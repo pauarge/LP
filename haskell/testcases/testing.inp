@@ -1,8 +1,0 @@
-INPUT X
-INPUT Y
-
-IF X > 0 THEN
-  Z := 1
-ELSE
-  Z := 1
-END

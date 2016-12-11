@@ -1,0 +1,8 @@
+INPUT X
+INPUT Y
+
+Z := X + Y
+
+PRINT X
+PRINT Y
+PRINT Z
