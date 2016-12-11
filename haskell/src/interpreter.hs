@@ -185,6 +185,7 @@ interpretCommand st inp (Assign id ne) =
     else
         (Left "Type error on := statement", st, inp)
 
+interpretCommand st [] _ = (Left "No input left", st, [])
 interpretCommand st inp@(x:xs) (Input id) = case setVar st id (Right x) of
     Right st' -> (Right [], st', xs)
     Left err -> (Left err, st, inp)
@@ -237,7 +238,6 @@ interpretCommand st inp (Loop cond exp) =
         case eval (getVar st) cond of
             Left err -> (Left err, st, inp)
             Right 1 -> interpretCommand st inp (Seq [exp, (Loop cond exp)])
-            --Right 1 -> interpretCommand st inp (Seq [Loop cond exp])
             Right 0 -> (Right [], st, inp)
     else
         (Left "Type error on loop conditional statement", st, inp)
