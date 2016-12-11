@@ -1,0 +1,4 @@
+INPUT X
+INPUT Y
+
+PUSH X Y

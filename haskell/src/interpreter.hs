@@ -99,14 +99,12 @@ setVar _ _ (Left err) = Left err
 setVar (SymTable xs) id (Right val) = Right (SymTable ((id, Left val) : clearList xs id))
 
 
--- TODO: "Type error when pushing to a single"
 setStack :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
 setStack _ _ (Left err) = Left err
-setStack st@(SymTable xs) id (Right val) = 
-    Right (SymTable ((id, Right (setStack' (getElem st id) val)) : clearList xs id))
-        where
-            setStack' (Just (Right xs)) val = val : xs  
-            setStack' _ _ = []
+setStack st@(SymTable xs) id (Right val) = case getElem st id of
+    Just (Left _) -> Left "Error while trying to push to a single"
+    Just (Right ys) -> 
+        Right (SymTable ((id, Right (val : ys)) : clearList xs id))
 
 
 popStack :: SymTable a -> Ident -> Either String (SymTable a, a)
@@ -281,12 +279,14 @@ genRand range seed = randomRs range (mkStdGen seed)
 -- Main
 
 exec p inp numType = case numType of
-    0 -> case interpretProgram ((read inp :: [Integer]) ++ (genRand (-999, 999) 1)) (read p :: Command Integer) of
+    0 -> case interpretProgram ((read inp :: [Integer]) ++ r) (read p :: Command Integer) of
         Right x -> show x
         Left x -> show x
-    1 -> case interpretProgram ((read inp :: [Double]) ++ (genRand (-999, 999) 1)) (read p :: Command Double) of
+        where r = genRand (-999, 999) 1
+    1 -> case interpretProgram ((read inp :: [Double]) ++ r) (read p :: Command Double) of
         Right x -> show x
         Left x -> show x
+        where r = genRand (-999, 999) 1
 
 
 main :: IO ()
