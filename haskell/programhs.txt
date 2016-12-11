@@ -1,1 +1,0 @@
-Seq [Input "X", Input "Y", Assign "Z" (Plus (Var "X") (Var "Y")), Print "X", Print "Y", Print "Z"]
