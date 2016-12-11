@@ -6,6 +6,8 @@ Pau Argelaguet i Franquelo - FIB tardor 2016
 
 ## How to run
 
+System.Random installed!
+
 ### Clean
 
 ### Compile

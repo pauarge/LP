@@ -187,7 +187,7 @@ interpretCommand st inp (Assign id ne) =
     else
         (Left "Type error on := statement", st, inp)
 
-interpretCommand st [] _ = (Left "No input left", st, [])
+interpretCommand st [] _ = (Right [], st, [])
 interpretCommand st inp@(x:xs) (Input id) = case setVar st id (Right x) of
     Right st' -> (Right [], st', xs)
     Left err -> (Left err, st, inp)
@@ -274,6 +274,7 @@ applyOp f (Left e) (Right _) = Left e
 applyOp f (Left e0) (Left e1) = Left (e0 ++ " " ++ e1)
 
 
+genRand :: (Num a, Random a) => (a, a) -> Int -> [a]
 genRand range seed = randomRs range (mkStdGen seed)
 
 
@@ -283,7 +284,7 @@ exec p inp numType = case numType of
     0 -> case interpretProgram ((read inp :: [Integer]) ++ (genRand (-999, 999) 1)) (read p :: Command Integer) of
         Right x -> show x
         Left x -> show x
-    1 -> case interpretProgram (read inp :: [Double]) (read p :: Command Double) of
+    1 -> case interpretProgram ((read inp :: [Double]) ++ (genRand (-999, 999) 1)) (read p :: Command Double) of
         Right x -> show x
         Left x -> show x
 
@@ -302,7 +303,7 @@ main = do
     putStrLn "What kind of execution you want?"
     putStrLn "  [0] Manual execution"
     putStrLn "  [1] Unique test"
-    putStrLn "  [2] Multiple test"
+    putStrLn "  [2] Multiple tests"
     et <- getLine
     let execType = read et :: Int
 
@@ -312,6 +313,10 @@ main = do
             lv <- getLine
             putStrLn $ exec p lv numType
         1 -> putStrLn $ exec p "[]" numType
-        2 -> putStrLn $ exec p "[]" numType
+        2 -> do
+            putStrLn "How many tests you want to execute?"
+            rk <- getLine
+            let k = read rk :: Int            
+            putStrLn $ exec p "[]" numType
 
     hClose handler    
