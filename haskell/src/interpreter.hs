@@ -110,7 +110,8 @@ setStack st@(SymTable xs) id (Right val) = case getElem st id of
 popStack :: SymTable a -> Ident -> Either String (SymTable a, a)
 popStack st@(SymTable xs) id = case getElem st id of
     Just (Right []) -> Left ("Empty stack " ++ id)
-    Just (Right (y:ys)) -> Right (SymTable ((id, Right ys) : clearList xs id), y)
+    Just (Right (y:ys)) -> 
+        Right (SymTable ((id, Right ys) : clearList xs id), y)
     Just (Left _) -> Left ("Type error: " ++ id ++ " is not a stack")
     Nothing -> Left ("Undefined variable " ++ id)
 
@@ -278,15 +279,20 @@ genRand range seed = randomRs range (mkStdGen seed)
 
 -- Main
 
-exec p inp numType = case numType of
-    0 -> case interpretProgram ((read inp :: [Integer]) ++ r) (read p :: Command Integer) of
+exec _ _ _ 0 = ""
+exec p inp numType execCount = case numType of
+    0 -> case interpretProgram (l ++ r) (read p :: Command Integer) of
+        Right x -> show x ++ "\n" ++ exec p inp numType (execCount - 1)
+        Left x -> show x
+        where 
+            r = genRand (-999, 999) execCount
+            l = read inp :: [Integer]
+    1 -> case interpretProgram (l ++ r) (read p :: Command Double) of
         Right x -> show x
         Left x -> show x
-        where r = genRand (-999, 999) 1
-    1 -> case interpretProgram ((read inp :: [Double]) ++ r) (read p :: Command Double) of
-        Right x -> show x
-        Left x -> show x
-        where r = genRand (-999, 999) 1
+        where 
+            r = genRand (-999, 999) execCount
+            l = read inp :: [Double]
 
 
 main :: IO ()
@@ -311,12 +317,12 @@ main = do
         0 -> do
             putStrLn "Enter a list of values"
             lv <- getLine
-            putStrLn $ exec p lv numType
-        1 -> putStrLn $ exec p "[]" numType
+            putStrLn $ exec p lv numType 1
+        1 -> putStrLn $ exec p "[]" numType 1
         2 -> do
-            putStrLn "How many tests you want to execute?"
+            putStrLn "How many tests do you want to execute?"
             rk <- getLine
             let k = read rk :: Int            
-            putStrLn $ exec p "[]" numType
+            putStrLn $ exec p "[]" numType k
 
     hClose handler    

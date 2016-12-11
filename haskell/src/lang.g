@@ -236,7 +236,7 @@ int main() {
 #token PRINT "PRINT"
 #token PUSH "PUSH"
 #token SIZE "SIZE"
-#token SPACE "[\ \n]" << zzskip();>>
+#token SPACE "[\ \n\t]" << zzskip();>>
 #token TIM "\*"
 #token THEN "THEN"
 #token WHILE "WHILE"

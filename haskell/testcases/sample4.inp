@@ -1,0 +1,21 @@
+INPUT x
+INPUT y
+
+IF x > y THEN
+  z := 1
+  k := 1
+  i := 1
+
+  WHILE 10 > k
+  DO
+  	i := i + x - y
+    k := k + 1
+  END
+
+  PRINT i
+
+ELSE
+  z := 0
+END
+
+PRINT z
