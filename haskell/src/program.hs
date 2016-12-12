@@ -7,19 +7,19 @@ import System.Random
 
 type Ident = String
 
-data Command a = Assign Ident (NExpr a) | Input Ident | Print Ident | 
-                 Empty Ident | Push Ident (NExpr a) | Pop Ident Ident | 
-                 Size Ident Ident | Seq [Command a] | 
-                 Cond (BExpr a) (Command a) (Command a) | 
+data Command a = Assign Ident (NExpr a) | Input Ident | Print Ident |
+                 Empty Ident | Push Ident (NExpr a) | Pop Ident Ident |
+                 Size Ident Ident | Seq [Command a] |
+                 Cond (BExpr a) (Command a) (Command a) |
                  Loop (BExpr a) (Command a)
                  deriving (Read)
 
-data BExpr a = AND (BExpr a) (BExpr a) | OR (BExpr a) (BExpr a) | 
-               NOT (BExpr a) | Gt (NExpr a) (NExpr a) | 
+data BExpr a = AND (BExpr a) (BExpr a) | OR (BExpr a) (BExpr a) |
+               NOT (BExpr a) | Gt (NExpr a) (NExpr a) |
                Eq (NExpr a) (NExpr a)
                deriving (Read)
 
-data NExpr a = Var Ident | Const a | Plus (NExpr a) (NExpr a) | 
+data NExpr a = Var Ident | Const a | Plus (NExpr a) (NExpr a) |
                Minus (NExpr a) (NExpr a) | Times (NExpr a) (NExpr a)
                deriving (Read)
 
@@ -31,21 +31,22 @@ data SymTable a = SymTable [(Ident, Either a [a])]
 -- Show functions for custom datatypes
 
 instance Show a => Show (Command a) where
-    show c = showCommand c 0
+    show c = showCom c 0
 
-showCommand :: Show a => Command a -> Int -> String
-showCommand (Assign id ne) t = tabulate t ++ id ++ " := " ++ show ne ++ "\n"
-showCommand (Input id) t = tabulate t ++ "INPUT " ++ id ++ "\n"
-showCommand (Print id) t = tabulate t ++ "PRINT " ++ id ++ "\n"
-showCommand (Empty id) t = tabulate t ++ "EMPTY " ++ id ++ "\n"
-showCommand (Push id ne) t = tabulate t ++ "PUSH " ++ id ++ " " ++ show ne ++ "\n"
-showCommand (Pop idO idD) t = tabulate t ++ "POP " ++ idO ++ " " ++ idD ++ "\n"
-showCommand (Size idO idD) t = tabulate t ++ "SIZE " ++ idO ++ " " ++ idD ++ "\n"
-showCommand (Seq cs) t = tabulate t ++ (show $ concatMap show cs) ++ "\n"
-showCommand (Cond be c c') t = tabulate t ++ "IF " ++ show be ++ " THEN " ++ 
-                               showCommand c (t + 1) ++ " ELSE " ++ showCommand c' (t + 1) ++ "\n"
-showCommand (Loop be c) t = tabulate t ++ "WHILE " ++ show be ++ "\n" ++ "DO" ++ "\n" ++
-                            showCommand c (t + 1) ++ "END" ++ "\n" 
+showCom :: Show a => Command a -> Int -> String
+showCom (Assign id ne) t = tabulate t ++ id ++ " := " ++ show ne ++ "\n"
+showCom (Input id) t = tabulate t ++ "INPUT " ++ id ++ "\n"
+showCom (Print id) t = tabulate t ++ "PRINT " ++ id ++ "\n"
+showCom (Empty id) t = tabulate t ++ "EMPTY " ++ id ++ "\n"
+showCom (Push id ne) t = tabulate t ++ "PUSH " ++ id ++ " " ++ show ne ++ "\n"
+showCom (Pop idO idD) t = tabulate t ++ "POP " ++ idO ++ " " ++ idD ++ "\n"
+showCom (Size idO idD) t = tabulate t ++ "SIZE " ++ idO ++ " " ++ idD ++ "\n"
+showCom (Seq cs) t = tabulate t ++ (show $ concatMap show cs) ++ "\n"
+showCom (Cond be c c') t = tabulate t ++ "IF " ++ show be ++ " THEN " ++
+                               showCom c (t + 1) ++ " ELSE " ++
+                               showCom c' (t + 1) ++ "\n"
+showCom (Loop be c) t = tabulate t ++ "WHILE " ++ show be ++ "\n" ++ "DO" ++
+                            "\n" ++ showCom c (t + 1) ++ "END" ++ "\n"
 
 
 instance Show a => Show (BExpr a) where
@@ -73,6 +74,8 @@ showNExpr (Times ne ne') t = tabulate t ++ show ne ++ " * " ++ show ne'
 
 -- SymTable getters
 
+-- Gets the value of a variable if it's a single
+-- or the top if it's a stack. Nothing if doesn't exist.
 getVar :: SymTable a -> Ident -> Maybe a
 getVar st id = case getElem st id of
     Just (Left x) -> Just x
@@ -94,28 +97,35 @@ getElem (SymTable xs) id = lookup id xs
 
 -- SymTable setters
 
+-- Sets value to a variable and returs the SymTable with 
+-- it inserted or an error. It assumes the value is a single.
 setVar :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
 setVar _ _ (Left err) = Left err  
-setVar (SymTable xs) id (Right val) = Right (SymTable ((id, Left val) : clearList xs id))
+setVar (SymTable xs) id (Right val) = 
+    Right (SymTable ((id, Left val) : clearList xs id))
 
 
-setStack :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
-setStack _ _ (Left err) = Left err
-setStack st@(SymTable xs) id (Right val) = case getElem st id of
+-- Pushes value to a stack and returns the symtable with the
+-- new stack or an error.
+pushStack :: SymTable a -> Ident -> Either String a -> Either String (SymTable a)
+pushStack _ _ (Left err) = Left err
+pushStack st@(SymTable xs) id (Right val) = case getElem st id of
     Just (Left _) -> Left "Error while trying to push to a single"
-    Just (Right ys) -> 
-        Right (SymTable ((id, Right (val : ys)) : clearList xs id))
+    Just (Right ys) -> Right $ SymTable ((id, Right (val : ys)) : clearList xs id)
 
 
+-- Pops value from stack and returns a pair with the symtable with the 
+-- new stack and the popped value or an error.
 popStack :: SymTable a -> Ident -> Either String (SymTable a, a)
 popStack st@(SymTable xs) id = case getElem st id of
     Just (Right []) -> Left ("Empty stack " ++ id)
-    Just (Right (y:ys)) -> 
-        Right (SymTable ((id, Right ys) : clearList xs id), y)
+    Just (Right (y:ys)) -> Right (SymTable ((id, Right ys) : clearList xs id), y)
     Just (Left _) -> Left ("Type error: " ++ id ++ " is not a stack")
     Nothing -> Left ("Undefined variable " ++ id)
 
 
+-- Initializes a stack if the variable was not defined or erases all the
+-- content on that variable and inserts an empty stack.
 emptyStack :: SymTable a -> Ident -> SymTable a
 emptyStack (SymTable xs) id = SymTable ((id, Right []) : clearList xs id)
 
@@ -176,7 +186,8 @@ instance Evaluable NExpr where
 
 -- Interpreter
 
-interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a -> ((Either String [a]), SymTable a, [a])
+interpretCommand :: (Num a, Ord a) => SymTable a -> [a] -> Command a 
+                        -> ((Either String [a]), SymTable a, [a])
 
 interpretCommand st inp (Assign id ne) = 
     if typeCheck (getType st) ne then
@@ -200,7 +211,7 @@ interpretCommand st inp (Empty id) = (Right [], emptyStack st id, inp)
 
 interpretCommand st inp (Push id ne) = 
     if typeCheck (getType st) ne then
-        case setStack st id (eval (getVar st) ne) of
+        case pushStack st id (eval (getVar st) ne) of
             Right st' -> (Right [], st', inp)
             Left err -> (Left err, st, inp)
     else
@@ -252,10 +263,12 @@ interpretProgram inp com = case interpretCommand (SymTable []) inp com of
 
 -- Helper functions
 
+-- Inserts 2*n whitespaces
 tabulate :: Int -> String
-tabulate n = take (2*n) (cycle "  ")
+tabulate n = take (2*n) $ cycle "  "
 
 
+-- Deletes all elements with the specified key in a list of pairs.
 clearList :: Eq a => [(a, b)] -> a -> [(a, b)]
 clearList l i = filter (\x -> fst x /= i) l
 
@@ -266,7 +279,8 @@ castBool (Right False) = Right 0
 castBool (Left err) = Left err
 
 
-applyOp :: (t -> t1 -> b) -> Either String t -> Either String t1 -> Either String b
+applyOp :: (t -> t1 -> b) -> Either String t -> Either String t1 
+                -> Either String b
 applyOp f (Right x) (Right y) = Right (f x y)
 applyOp f (Right _) (Left e) = Left e
 applyOp f (Left e) (Right _) = Left e
@@ -295,6 +309,8 @@ exec p inp numType execCount = case numType of
             l = read inp :: [Double]
 
 
+-- TODO: Show list used as input
+--       Show total number of executed instructions
 main :: IO ()
 main = do
     handler <- openFile "programhs.txt" ReadMode
