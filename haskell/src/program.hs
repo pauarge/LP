@@ -331,7 +331,7 @@ main = do
 
     case execType of
         0 -> do
-            putStrLn "Enter a list of values"
+            putStrLn "Enter a list of values (in the Haskell format)"
             lv <- getLine
             putStrLn $ exec p lv numType 1
         1 -> putStrLn $ exec p "[]" numType 1
