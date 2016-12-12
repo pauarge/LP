@@ -25,7 +25,7 @@ Removes all old binary files stored in the folder `bin/`.
 
 Does all compilation steps in one and generates two executables:
 
-* **lang** This is the PCCTS parser. It receives some input through stdin and outputs a string that can be interpreted as a program.
+* **reader** This is the PCCTS parser. It receives some input through stdin and outputs a string that can be interpreted as a program.
 * **program** Reads a file in the same directory called `programhs.txt` and if it contains a valid program, it runs it.
 
 This commands are assuming an standard installation of PCCTS 1.3+ and Haskell (GHC) 7+ on Ubuntu 16.04. In order to make it work somewhere else, the *included directory* flag on `g++` command may change. 

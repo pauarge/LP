@@ -4,7 +4,7 @@ if [ $# -eq 0 ]; then
 	echo "No input file specified"
 elif [ $# -eq 1 ]; then
 	INP=$(readlink -f "$1")
-	bin/lang < "$INP" > programhs.txt
+	bin/reader < "$INP" > programhs.txt
 	bin/program
 	rm programhs.txt
 else 
