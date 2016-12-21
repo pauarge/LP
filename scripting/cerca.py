@@ -1,25 +1,32 @@
+from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 
-
-import urllib
 import argparse
 import sys
 
-
 URL_BICING = 'http://wservice.viabicing.cat/v1/getstations.php?v=1'
-URL_EVENTS = 'http://w10.bcn.es/APPS/asiasiacache/peticioXmlAsia?id=203'
+URL_EVENTS = 'http://www.bcn.cat/tercerlloc/agenda cultural.xml'
 URL_PARKING = 'http://www.bcn.cat/tercerlloc/Aparcaments.xml'
 
 
-def fetch_data():
-    tree = ET.parse('country_data.xml')
-    root = tree.getroot(URL_BICING)
-    file = urllib.urlopen(
-        'https://www.goodreads.com/review/list/20990068.xml?key=nGvCqaQ6tn9w4HNpW8kquw&v=2&shelf=toread')
-    data = file.read()
-    file.close()
+def fetch_stations():
+    pass
 
-    print("Got data")
+
+def fetch_events():
+    pass
+
+
+def fetch_parking():
+    pass
+
+
+def fetch_data():
+    data = urlopen(URL_BICING).read()
+
+    root = ET.fromstring(data)
+    for child in root.iter('station'):
+        print(child.tag)
 
 
 def main(argv):
