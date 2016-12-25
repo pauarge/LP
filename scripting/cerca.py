@@ -1,9 +1,10 @@
 # TODO: Parallelize data download and parsing
 
 from urllib.request import urlopen
-import xml.etree.ElementTree as ET
+from datetime import datetime
 from math import radians, cos, sin, asin, sqrt
 
+import xml.etree.ElementTree as ET
 import argparse
 import sys
 
@@ -16,24 +17,29 @@ class Event(object):
     def __init__(self, name, address, timestamp, lat, lon):
         self.name = name
         self.address = address
-        self.timestamp = timestamp
+        self.timestamp = datetime.strptime(timestamp, "%d/%m/%Y%H:%M")
         self.lat = lat
         self.lon = lon
 
     @staticmethod
-    def fetch():
+    def fetch(args):
         print("Getting events...")
         data = urlopen(URL_EVENTS).read()
         root = ET.fromstring(data)
         rows = root.find('search').find('queryresponse').find('list').find('list_items').iter('row')
         events = []
+        errs = 0
         for i in rows:
             item = i.find('item')
-            addresses = item.find('addresses')
-            event = Event(item.find('name').text, addresses.find('address').text,
-                          item.find('proxdate').text + item.find('proxhour').text, addresses.find('gmapx'),
-                          addresses.find('gmapy'))
-            events.append(event)
+            try:
+                addresses = item.find('addresses').find('item')
+                event = Event(item.find('name').text, addresses.find('address').text,
+                              item.find('proxdate').text + item.find('proxhour').text,
+                              addresses.find('gmapx').text,
+                              addresses.find('gmapy').text)
+                events.append(event)
+            except AttributeError:
+                errs += 1
         return events
 
 
@@ -107,7 +113,7 @@ def main(argv):
     parser.add_argument('-k', '--key')
     args = parser.parse_args()
 
-    events = Event.fetch()
+    events = Event.fetch(args)
     stations = Station.fetch()
     parkings = Parking.fetch()
 
