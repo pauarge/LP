@@ -35,8 +35,7 @@ class Event(object):
                 addresses = item.find('addresses').find('item')
                 event = Event(item.find('name').text, addresses.find('address').text,
                               item.find('proxdate').text + item.find('proxhour').text,
-                              addresses.find('gmapx').text,
-                              addresses.find('gmapy').text)
+                              addresses.find('gmapx').text, addresses.find('gmapy').text)
                 events.append(event)
             except AttributeError:
                 errs += 1
@@ -61,8 +60,10 @@ class Station(object):
 
 
 class Parking(object):
-    def __init__(self, name, lat, lon):
+    def __init__(self, name, street, number, lat, lon):
         self.name = name
+        self.street = street
+        self.number = number
         self.lat = lat
         self.lon = lon
 
@@ -77,18 +78,28 @@ class Parking(object):
 class Printable(object):
     def __init__(self, event, stations, parkings):
         self.event = event
-        self.stations = stations
-        self.parkings = parkings
+        self.global_stations = stations
+        self.global_parkings = parkings
+
+        self.stations_spots = []
+        self.stations_bikes = []
+        self.parkings = []
 
     @staticmethod
     def generate_html(printables):
         print("Exporting data...")
-        yield '<table>'
-        for event in printables:
-            yield '  <tr>'
-            yield '    <td>Hola</td>'
-            yield '  </tr>'
-        yield '</table>'
+        yield '<html><head><meta charset="UTF-8"></head><body>'
+        yield '<h1>Results</h1>'
+        for p in printables:
+            yield '<h2>{}</h2>'.format(p.event.name)
+            yield '<p>{} - {}</p>'.format(p.event.address, p.event.timestamp)
+            if p.stations_spots:
+                yield '<h3>Stations with available spots</h3>'
+            if p.stations_bikes:
+                yield '<h3>Stations with available bikes</h3>'
+            if p.parkings:
+                yield '<h3>Nearby parking lots</h3>'
+        yield '</body></html>'
 
 
 def distance(lon1, lat1, lon2, lat2):
