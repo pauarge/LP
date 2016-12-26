@@ -1,4 +1,5 @@
 # TODO: Parallelize data download and parsing
+#       Add street number to event
 
 from urllib.request import urlopen
 from datetime import datetime
@@ -17,21 +18,21 @@ class Event(object):
     def __init__(self, name, address, timestamp, lat, lon):
         self.name = name
         self.address = address
+        self.number = None
         self.timestamp = datetime.strptime(timestamp, "%d/%m/%Y%H:%M")
-        self.lat = lat
-        self.lon = lon
+        self.lat = float(lat)
+        self.lon = float(lon)
 
     @staticmethod
     def fetch(args):
         print("Getting events...")
         data = urlopen(URL_EVENTS).read()
-        root = ET.fromstring(data)
-        rows = root.find('search').find('queryresponse').find('list').find('list_items').iter('row')
+        rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
         events = []
         errs = 0
         for i in rows:
-            item = i.find('item')
             try:
+                item = i.find('item')
                 addresses = item.find('addresses').find('item')
                 event = Event(item.find('name').text, addresses.find('address').text,
                               item.find('proxdate').text + item.find('proxhour').text,
@@ -44,19 +45,29 @@ class Event(object):
 
 class Station(object):
     def __init__(self, slots, bikes, street, number, lat, lon):
-        self.slots = slots
-        self.bikes = bikes
+        self.slots = int(slots)
+        self.bikes = int(bikes)
         self.street = street
         self.number = number
-        self.lat = lat
-        self.lon = lon
+        self.lat = float(lat)
+        self.lon = float(lon)
+        self.distance = 0
 
     @staticmethod
     def fetch():
         print("Getting stations...")
         data = urlopen(URL_BICING).read()
-        root = ET.fromstring(data)
-        return root.iter('station')
+        stations = []
+        items = ET.fromstring(data).iter('station')
+        errs = 0
+        for item in items:
+            try:
+                station = Station(item.find('slots').text, item.find('bikes').text, item.find('street').text,
+                                  item.find('streetNumber').text, item.find('lat').text, item.find('long').text)
+                stations.append(station)
+            except AttributeError:
+                errs += 1
+        return stations
 
 
 class Parking(object):
@@ -64,15 +75,28 @@ class Parking(object):
         self.name = name
         self.street = street
         self.number = number
-        self.lat = lat
-        self.lon = lon
+        self.lat = float(lat)
+        self.lon = float(lon)
+        self.distance = 0
 
     @staticmethod
     def fetch():
         print("Getting parkings...")
         data = urlopen(URL_PARKING).read()
-        root = ET.fromstring(data)
-        return root.find('search').find('queryresponse').find('list').find('list_items').iter('row')
+        rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
+        parkings = []
+        errs = 0
+        for i in rows:
+            try:
+                item = i.find('item')
+                addresses = item.find('addresses').find('item')
+                parking = Parking(item.find('name').text, addresses.find('address').text,
+                                  addresses.find('streetnum').text, addresses.find('gmapx').text,
+                                  addresses.find('gmapy').text)
+                parkings.append(parking)
+            except AttributeError:
+                errs += 1
+        return parkings
 
 
 class Printable(object):
@@ -81,9 +105,24 @@ class Printable(object):
         self.global_stations = stations
         self.global_parkings = parkings
 
-        self.stations_spots = []
-        self.stations_bikes = []
-        self.parkings = []
+        self.sorted_stations = self.sort_stations()
+        self.stations_spots = self.fetch_stations_spots()
+        self.stations_bikes = self.fetch_stations_bikes()
+        self.parkings = self.fetch_parkings()
+
+    def sort_stations(self):
+        for i in self.global_stations:
+            i.distance = distance(self.event.lon, self.event.lat, i.lon, i.lat)
+        return sorted(self.global_stations, key=lambda x: x.distance)
+
+    def fetch_stations_spots(self):
+        return []
+
+    def fetch_stations_bikes(self):
+        return []
+
+    def fetch_parkings(self):
+        return []
 
     @staticmethod
     def generate_html(printables):
