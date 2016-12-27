@@ -2,7 +2,7 @@
 #       Add street number to event
 
 from urllib.request import urlopen
-from datetime import datetime
+from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt
 
 import xml.etree.ElementTree as ET
@@ -45,6 +45,24 @@ class Event(object):
         return events
 
     @classmethod
+    def get_timestamps(cls, filters):
+        if isinstance(filters, list) and len(filters) > 0:
+            return cls.get_timestamps(filters[0]) + cls.get_timestamps(filters[1:])
+        elif isinstance(filters, tuple):
+            base = datetime.strptime(filters[0], "%d/%m/%Y")
+            return [(base + timedelta(days=filters[1]), base + timedelta(days=1 + filters[2]))]
+        elif isinstance(filters, str):
+            base = datetime.strptime(filters, "%d/%m/%Y")
+            return [(base, base + timedelta(days=1))]
+        return []
+
+    @classmethod
+    def filter_date(cls, events, filters):
+        if len(filters) > 0:
+            return filter(lambda x: any(y[0] <= x.timestamp <= y[1] for y in cls.get_timestamps(filters)), events)
+        return events
+
+    @classmethod
     def fetch(cls, args):
         data = urlopen(URL_EVENTS).read()
         rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
@@ -60,11 +78,13 @@ class Event(object):
                 events.append(event)
             except AttributeError:
                 errs += 1
-        try:
-            filters = ast.literal_eval(args.key)
-        except ValueError:
-            filters = []
-        return sorted(cls.filter_key(events, filters), key=lambda x: x.timestamp)
+
+        filters_key = ast.literal_eval(args.key) if args.key else []
+        filters_date = ast.literal_eval(args.date) if args.date else []
+
+        events = cls.filter_key(events, filters_key)
+        events = cls.filter_date(events, filters_date)
+        return sorted(events, key=lambda x: x.timestamp)
 
 
 class Station(object):
@@ -149,36 +169,46 @@ class Printable(object):
 
     @staticmethod
     def generate_html(printables):
-        yield '<html><head><meta charset="UTF-8"></head><body>'
-        yield '<h1>Results</h1>'
+        yield '<html>'
+        yield '<head><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><meta charset="UTF-8"></head>'
+        yield '<body><div class="container">'
+        yield '<h1>Results:</h1>'
         for p in printables:
             yield '<h2>{}</h2>'.format(p.event.name)
-            yield '<p>{} - {}</p>'.format(p.event.address, p.event.timestamp)
+            yield '<p>{} - {}</p>'.format(p.event.address, datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
             if p.stations_slots:
                 yield '<h3>Stations with available slots</h3>'
-                yield '<table>'
+                yield '<table class="table table-bordered table-hover">'
+                yield '<tr><th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th></tr>'
                 for i in p.stations_slots:
                     yield '<tr>'
-                    yield '<td>{}</td><td>{}</td><td>{}</td><td>{}</td>'.format(i.street, i.number, i.slots, i.bikes)
+                    yield '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>'.format(i.street, i.number,
+                                                                                              i.slots, i.bikes,
+                                                                                              i.distance)
                     yield '</tr>'
                 yield '</table>'
             if p.stations_bikes:
                 yield '<h3>Stations with available bikes</h3>'
-                yield '<table>'
+                yield '<table class="table table-bordered table-hover">'
+                yield '<tr><th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th></tr>'
                 for i in p.stations_bikes:
                     yield '<tr>'
-                    yield '<td>{}</td><td>{}</td><td>{}</td><td>{}</td>'.format(i.street, i.number, i.slots, i.bikes)
+                    yield '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>'.format(i.street, i.number,
+                                                                                              i.slots, i.bikes,
+                                                                                              i.distance)
                     yield '</tr>'
                 yield '</table>'
             if p.parkings:
                 yield '<h3>Nearby parking lots</h3>'
-                yield '<table>'
+                yield '<table class="table table-bordered table-hover">'
+                yield '<tr><th>Name</th><th>Address</th><th>Distance</tr>'
                 for i in p.parkings:
                     yield '<tr>'
-                    yield '<td>{}</td><td>{}</td>'.format(i.name, i.street)
+                    yield '<td>{}</td><td>{}</td><td>{} km</td>'.format(i.name, i.street, i.distance)
                     yield '</tr>'
                 yield '</table>'
-        yield '</body></html>'
+            yield '<hr>'
+        yield '</div></body></html>'
 
 
 def distance(lon1, lat1, lon2, lat2):
