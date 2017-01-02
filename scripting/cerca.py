@@ -6,11 +6,27 @@ import xml.etree.ElementTree as ET
 import argparse
 import ast
 import os
+import unicodedata
 
 URL_BICING = 'http://wservice.viabicing.cat/v1/getstations.php?v=1'
 URL_EVENTS = 'http://www.bcn.cat/tercerlloc/agenda_cultural.xml'
 URL_PARKING = 'http://www.bcn.cat/tercerlloc/Aparcaments.xml'
 DIST_DECIMAL_PLACES = 3
+
+
+# Returns straight line distance between two geographical points in km
+def distance(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    c = 2 * asin(sqrt(a))
+    return 6367 * c
+
+
+def remove_accents(input_str: str) -> str:
+    nfkd_form = unicodedata.normalize('NFKD', input_str.casefold())
+    return u"".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 
 class Event(object):
@@ -29,16 +45,16 @@ class Event(object):
                 return cls.filter_key(cls.filter_key(events, filters[1:]), filters[0])
             elif isinstance(filters[0], tuple):
                 return filter(lambda x: any(
-                    y.casefold() in x.name.casefold() or
-                    y.casefold() in x.address.casefold() or
-                    y.casefold() in x.district.casefold()
+                    remove_accents(y) in remove_accents(x.name) or
+                    remove_accents(y) in remove_accents(x.address) or
+                    remove_accents(y) in remove_accents(x.district)
                     for y in filters[0]),
                               cls.filter_key(events, filters[1:]))
             elif isinstance(filters[0], str):
                 return filter(lambda x:
-                              filters[0].casefold() in x.name.casefold() or
-                              filters[0].casefold() in x.address.casefold() or
-                              filters[0].casefold() in x.district.casefold(),
+                              remove_accents(filters[0]) in remove_accents(x.name) or
+                              remove_accents(filters[0]) in remove_accents(x.address) or
+                              remove_accents(filters[0]) in remove_accents(x.district),
                               cls.filter_key(events, filters[1:]))
         return events
 
@@ -189,7 +205,8 @@ class Printable(object):
                     for i in p.stations_slots:
                         yield '<tr>' \
                               '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                              '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
+                              '</tr>'.format(i.street, i.number, i.slots, i.bikes,
+                                             round(i.distance, DIST_DECIMAL_PLACES))
                     yield '</table>'
                 if p.stations_bikes:
                     yield '<h3>Stations with available bikes</h3>' \
@@ -200,7 +217,8 @@ class Printable(object):
                     for i in p.stations_bikes:
                         yield '<tr>' \
                               '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                              '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
+                              '</tr>'.format(i.street, i.number, i.slots, i.bikes,
+                                             round(i.distance, DIST_DECIMAL_PLACES))
                     yield '</table>'
                 if p.parkings:
                     yield '<h3>Nearby parking lots</h3>' \
@@ -215,21 +233,6 @@ class Printable(object):
         else:
             yield 'No results.'
         yield '</div></body></html>'
-
-
-def distance(lon1, lat1, lon2, lat2):
-    """
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-    """
-    # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * asin(sqrt(a))
-    km = 6367 * c
-    return km
 
 
 def main():
