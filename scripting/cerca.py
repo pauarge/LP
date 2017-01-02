@@ -1,6 +1,7 @@
 from urllib.request import urlopen
 from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt
+from typing import Generator
 
 import xml.etree.ElementTree as ET
 import argparse
@@ -30,7 +31,7 @@ def remove_accents(input_str: str) -> str:
 
 
 class Event(object):
-    def __init__(self, name, address, district, timestamp, lat, lon):
+    def __init__(self, name: str, address: str, district: str, timestamp: str, lat: str, lon: str):
         self.name = name
         self.address = address
         self.district = district
@@ -39,7 +40,7 @@ class Event(object):
         self.lon = float(lon)
 
     @classmethod
-    def filter_key(cls, events, filters):
+    def filter_key(cls, events: list, filters: list) -> list:
         if len(filters) > 0:
             if isinstance(filters[0], list):
                 return cls.filter_key(cls.filter_key(events, filters[1:]), filters[0])
@@ -59,7 +60,7 @@ class Event(object):
         return events
 
     @classmethod
-    def get_timestamps(cls, filters):
+    def get_timestamps(cls, filters: list) -> list:
         if isinstance(filters, list) and len(filters) > 0:
             return cls.get_timestamps(filters[0]) + cls.get_timestamps(filters[1:])
         elif isinstance(filters, tuple):
@@ -71,13 +72,13 @@ class Event(object):
         return []
 
     @classmethod
-    def filter_date(cls, events, filters):
+    def filter_date(cls, events: list, filters: list) -> list:
         if len(filters) > 0:
             return filter(lambda x: any(y[0] <= x.timestamp <= y[1] for y in cls.get_timestamps(filters)), events)
         return events
 
     @classmethod
-    def fetch(cls, args):
+    def fetch(cls, args: list) -> list:
         data = urlopen(URL_EVENTS).read()
         rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
         events = []
@@ -102,7 +103,7 @@ class Event(object):
 
 
 class Station(object):
-    def __init__(self, slots, bikes, street, number, lat, lon):
+    def __init__(self, slots: str, bikes: str, street: str, number: str, lat: str, lon: str):
         self.slots = int(slots)
         self.bikes = int(bikes)
         self.street = street
@@ -112,7 +113,7 @@ class Station(object):
         self.distance = 0
 
     @staticmethod
-    def fetch():
+    def fetch() -> list:
         data = urlopen(URL_BICING).read()
         stations = []
         items = ET.fromstring(data).iter('station')
@@ -128,7 +129,7 @@ class Station(object):
 
 
 class Parking(object):
-    def __init__(self, name, street, lat, lon):
+    def __init__(self, name: str, street: str, lat: str, lon: str):
         self.name = name
         self.street = street
         self.lat = float(lat)
@@ -136,7 +137,7 @@ class Parking(object):
         self.distance = 0
 
     @staticmethod
-    def fetch():
+    def fetch() -> list:
         data = urlopen(URL_PARKING).read()
         rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
         parkings = []
@@ -154,7 +155,7 @@ class Parking(object):
 
 
 class Printable(object):
-    def __init__(self, event, stations, parkings):
+    def __init__(self, event: Event, stations: list, parkings: list):
         self.event = event
         self.global_stations = stations
         self.global_parkings = parkings
@@ -164,25 +165,25 @@ class Printable(object):
         self.stations_bikes = self.fetch_stations_bikes()
         self.parkings = self.fetch_parkings()
 
-    def sort_stations(self):
+    def sort_stations(self) -> list:
         for i in self.global_stations:
             i.distance = distance(self.event.lon, self.event.lat, i.lon, i.lat)
         stations = list(filter(lambda x: x.distance <= 0.5, self.global_stations))
         return sorted(stations, key=lambda x: x.distance)
 
-    def fetch_stations_slots(self):
+    def fetch_stations_slots(self) -> list:
         return list(filter(lambda x: x.slots > 0, self.sorted_stations))
 
-    def fetch_stations_bikes(self):
+    def fetch_stations_bikes(self) -> list:
         return list(filter(lambda x: x.bikes > 0, self.sorted_stations))
 
-    def fetch_parkings(self):
+    def fetch_parkings(self) -> list:
         for i in self.global_parkings:
             i.distance = distance(self.event.lon, self.event.lat, i.lon, i.lat)
         return sorted(list(filter(lambda x: x.distance <= 0.5, self.global_parkings)), key=lambda x: x.distance)
 
     @staticmethod
-    def generate_html(events, stations, parkings):
+    def generate_html(events: list, stations: list, parkings: list) -> Generator:
         yield '<html>' \
               '<head>' \
               '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">' \
