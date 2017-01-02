@@ -1,6 +1,3 @@
-# TODO: Parallelize data download and parsing
-#       Add street number to event
-
 from urllib.request import urlopen
 from datetime import datetime, timedelta
 from math import radians, cos, sin, asin, sqrt
@@ -9,7 +6,6 @@ import xml.etree.ElementTree as ET
 import argparse
 import ast
 import os
-import sys
 
 URL_BICING = 'http://wservice.viabicing.cat/v1/getstations.php?v=1'
 URL_EVENTS = 'http://www.bcn.cat/tercerlloc/agenda_cultural.xml'
@@ -179,42 +175,45 @@ class Printable(object):
               '<body>' \
               '<div class="container">' \
               '<h1>Results:</h1><br>'
-        for e in events:
-            p = Printable(e, stations, parkings)
-            yield '<h2>{}</h2>'.format(p.event.name)
-            yield '<p>{} - {}</p>'.format(p.event.address, datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
-            if p.stations_slots:
-                yield '<h3>Stations with available slots</h3>' \
-                      '<table class="table table-bordered table-hover">' \
-                      '<tr>' \
-                      '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
-                      '</tr>'
-                for i in p.stations_slots:
-                    yield '<tr>' \
-                          '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                          '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
-                yield '</table>'
-            if p.stations_bikes:
-                yield '<h3>Stations with available bikes</h3>' \
-                      '<table class="table table-bordered table-hover">' \
-                      '<tr>' \
-                      '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
-                      '</tr>'
-                for i in p.stations_bikes:
-                    yield '<tr>' \
-                          '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                          '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
-                yield '</table>'
-            if p.parkings:
-                yield '<h3>Nearby parking lots</h3>' \
-                      '<table class="table table-bordered table-hover">' \
-                      '<tr><th>Name</th><th>Address</th><th>Distance</tr>'
-                for i in p.parkings:
-                    yield '<tr>' \
-                          '<td>{}</td><td>{}</td><td>{} km</td>' \
-                          '</tr>'.format(i.name, i.street, round(i.distance, DIST_DECIMAL_PLACES))
-                yield '</table>'
-            yield '<hr>'
+        if events:
+            for e in events:
+                p = Printable(e, stations, parkings)
+                yield '<h2>{}</h2>'.format(p.event.name)
+                yield '<p>{} - {}</p>'.format(p.event.address, datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
+                if p.stations_slots:
+                    yield '<h3>Stations with available slots</h3>' \
+                          '<table class="table table-bordered table-hover">' \
+                          '<tr>' \
+                          '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
+                          '</tr>'
+                    for i in p.stations_slots:
+                        yield '<tr>' \
+                              '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
+                              '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
+                    yield '</table>'
+                if p.stations_bikes:
+                    yield '<h3>Stations with available bikes</h3>' \
+                          '<table class="table table-bordered table-hover">' \
+                          '<tr>' \
+                          '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
+                          '</tr>'
+                    for i in p.stations_bikes:
+                        yield '<tr>' \
+                              '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
+                              '</tr>'.format(i.street, i.number, i.slots, i.bikes, round(i.distance, DIST_DECIMAL_PLACES))
+                    yield '</table>'
+                if p.parkings:
+                    yield '<h3>Nearby parking lots</h3>' \
+                          '<table class="table table-bordered table-hover">' \
+                          '<tr><th>Name</th><th>Address</th><th>Distance</tr>'
+                    for i in p.parkings:
+                        yield '<tr>' \
+                              '<td>{}</td><td>{}</td><td>{} km</td>' \
+                              '</tr>'.format(i.name, i.street, round(i.distance, DIST_DECIMAL_PLACES))
+                    yield '</table>'
+                yield '<hr>'
+        else:
+            yield 'No results.'
         yield '</div></body></html>'
 
 
@@ -233,7 +232,7 @@ def distance(lon1, lat1, lon2, lat2):
     return km
 
 
-def main(argv):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--date')
     parser.add_argument('-k', '--key')
@@ -259,4 +258,4 @@ def main(argv):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
