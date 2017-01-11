@@ -21,8 +21,7 @@ def distance(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    c = 2 * asin(sqrt(a))
-    return 6367 * c
+    return 6367 * 2 * asin(sqrt(a))
 
 
 def remove_accents(input_str: str) -> str:
@@ -45,10 +44,10 @@ class Event(object):
             return cls.get_timestamps(filters[0]) + cls.get_timestamps(filters[1:])
         elif isinstance(filters, tuple):
             base = datetime.strptime(filters[0], "%d/%m/%Y")
-            return [(base + timedelta(days=filters[1]), base + timedelta(days=1 + filters[2]))]
+            return [(base + timedelta(days=filters[1]), base + timedelta(days=filters[2], hours=23, minutes=59))]
         elif isinstance(filters, str):
             base = datetime.strptime(filters, "%d/%m/%Y")
-            return [(base, base + timedelta(days=1))]
+            return [(base, base + timedelta(hours=23, minutes=59))]
         return []
 
     @classmethod
@@ -59,23 +58,16 @@ class Event(object):
                                remove_accents(filters) in remove_accents(x.address) or
                                remove_accents(filters) in remove_accents(x.district),
                                events))
+        elif isinstance(filters, tuple):
+            return list(filter(lambda x: any(
+                remove_accents(y) in remove_accents(x.name) or
+                remove_accents(y) in remove_accents(x.address) or
+                remove_accents(y) in remove_accents(x.district)
+                for y in filters), events))
         elif len(filters) > 0:
-            if isinstance(filters[0], list):
-                return cls.filter_key(cls.filter_key(events, filters[1:]), filters[0])
-            elif isinstance(filters[0], tuple):
-                return list(filter(lambda x: any(
-                    remove_accents(y) in remove_accents(x.name) or
-                    remove_accents(y) in remove_accents(x.address) or
-                    remove_accents(y) in remove_accents(x.district)
-                    for y in filters[0]),
-                                   cls.filter_key(events, filters[1:])))
-            elif isinstance(filters[0], str):
-                return list(filter(lambda x:
-                                   remove_accents(filters[0]) in remove_accents(x.name) or
-                                   remove_accents(filters[0]) in remove_accents(x.address) or
-                                   remove_accents(filters[0]) in remove_accents(x.district),
-                                   cls.filter_key(events, filters[1:])))
-        return events
+            return cls.filter_key(cls.filter_key(events, filters[1:]), filters[0])
+        else:
+            return events
 
     @classmethod
     def filter_date(cls, events, filters):
@@ -204,7 +196,8 @@ class Printable(object):
             for e in events:
                 p = Printable(e, stations, parkings)
                 yield '<h2>{}</h2>'.format(p.event.name)
-                yield '<p>{} - {}</p>'.format(p.event.address, datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
+                yield '<p>{} (district of {}) - {}</p>'.format(p.event.address, p.event.district,
+                                                               datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
                 if p.stations_slots:
                     yield '<h3>Stations with available slots</h3>' \
                           '<table class="table table-bordered table-hover">' \
