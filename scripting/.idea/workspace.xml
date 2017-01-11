@@ -4,7 +4,6 @@
     <list default="true" id="497dabed-d267-4fa3-a917-0d8e3d3bd797" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/cerca.py" afterPath="$PROJECT_DIR$/cerca.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test.sh" afterPath="$PROJECT_DIR$/test.sh" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -25,8 +24,8 @@
       <file leaf-file-name="cerca.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cerca.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1549">
-              <caret line="80" column="115" lean-forward="true" selection-start-line="80" selection-start-column="115" selection-end-line="80" selection-end-column="115" />
+            <state relative-caret-position="486">
+              <caret line="120" column="72" lean-forward="true" selection-start-line="120" selection-start-column="72" selection-end-line="120" selection-end-column="72" />
               <folding>
                 <element signature="e#0#34#0" expanded="true" />
               </folding>
@@ -56,6 +55,7 @@
       <find>ast.litera</find>
       <find>filter_key</find>
       <find>print</find>
+      <find>errs</find>
     </findStrings>
     <replaceStrings>
       <replace>slots</replace>
@@ -79,7 +79,7 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="951" />
+    <option name="x" value="663" />
     <option name="y" value="22" />
     <option name="width" value="1609" />
     <option name="height" value="1413" />
@@ -471,11 +471,18 @@
       <option name="project" value="LOCAL" />
       <updated>1483476890575</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fixing filtering issues">
+      <created>1484142470361</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1484142470361</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="951" y="22" width="1609" height="1413" extended-state="0" />
+    <frame x="663" y="22" width="1609" height="1413" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1367309" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -517,7 +524,8 @@
     <MESSAGE value="Finished type annotations" />
     <MESSAGE value="Almost finished" />
     <MESSAGE value="Finishing readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="Finishing readme" />
+    <MESSAGE value="Fixing filtering issues" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixing filtering issues" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -560,6 +568,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -665,8 +674,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cerca.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1549">
-          <caret line="80" column="115" lean-forward="true" selection-start-line="80" selection-start-column="115" selection-end-line="80" selection-end-column="115" />
+        <state relative-caret-position="486">
+          <caret line="120" column="72" lean-forward="true" selection-start-line="120" selection-start-column="72" selection-end-line="120" selection-end-column="72" />
           <folding>
             <element signature="e#0#34#0" expanded="true" />
           </folding>
@@ -677,6 +686,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="180">
           <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>

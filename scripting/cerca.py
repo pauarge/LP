@@ -80,7 +80,6 @@ class Event(object):
         data = urlopen(URL_EVENTS).read()
         rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
         events = []
-        errs = 0
         for i in rows:
             try:
                 item = i.find('item')
@@ -90,7 +89,7 @@ class Event(object):
                               addresses.find('gmapx').text, addresses.find('gmapy').text)
                 events.append(event)
             except AttributeError:
-                errs += 1
+                pass
 
         try:
             filters_key = ast.literal_eval(args.key) if args.key else []
@@ -117,14 +116,13 @@ class Station(object):
         data = urlopen(URL_BICING).read()
         stations = []
         items = ET.fromstring(data).iter('station')
-        errs = 0
         for item in items:
             try:
                 station = Station(item.find('slots').text, item.find('bikes').text, item.find('street').text,
                                   item.find('streetNumber').text, item.find('lat').text, item.find('long').text)
                 stations.append(station)
             except AttributeError:
-                errs += 1
+                pass
         return stations
 
 
@@ -141,7 +139,6 @@ class Parking(object):
         data = urlopen(URL_PARKING).read()
         rows = ET.fromstring(data).find('search').find('queryresponse').find('list').find('list_items').iter('row')
         parkings = []
-        errs = 0
         for i in rows:
             try:
                 item = i.find('item')
@@ -150,7 +147,7 @@ class Parking(object):
                                   addresses.find('gmapy').text)
                 parkings.append(parking)
             except AttributeError:
-                errs += 1
+                pass
         return parkings
 
 
