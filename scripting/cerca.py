@@ -12,16 +12,15 @@ import sys
 URL_BICING = 'http://wservice.viabicing.cat/v1/getstations.php?v=1'
 URL_EVENTS = 'http://www.bcn.cat/tercerlloc/agenda_cultural.xml'
 URL_PARKING = 'http://www.bcn.cat/tercerlloc/Aparcaments.xml'
-DIST_DECIMAL_PLACES = 3
 
 
-# Returns straight line distance between two geographical points in km
+# Returns straight line distance between two geographical points in m
 def distance(lon1: float, lat1: float, lon2: float, lat2: float) -> float:
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
     a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
-    return 6367 * 2 * asin(sqrt(a))
+    return (6367 * 2 * asin(sqrt(a))) * 1000
 
 
 def remove_accents(input_str: str) -> str:
@@ -165,7 +164,7 @@ class Printable(object):
     def sort_stations(self):
         for i in self.global_stations:
             i.distance = distance(self.event.lon, self.event.lat, i.lon, i.lat)
-        stations = list(filter(lambda x: x.distance <= 0.5, self.global_stations))
+        stations = list(filter(lambda x: x.distance <= 500, self.global_stations))
         return sorted(stations, key=lambda x: x.distance)
 
     def fetch_stations_slots(self):
@@ -177,58 +176,59 @@ class Printable(object):
     def fetch_parkings(self):
         for i in self.global_parkings:
             i.distance = distance(self.event.lon, self.event.lat, i.lon, i.lat)
-        return sorted(list(filter(lambda x: x.distance <= 0.5, self.global_parkings)), key=lambda x: x.distance)
+        return sorted(list(filter(lambda x: x.distance <= 500, self.global_parkings)), key=lambda x: x.distance)
 
     @staticmethod
     def generate_html(events, stations, parkings):
+        query = " ".join(map(str, sys.argv[1:]))
         yield '<html>' \
               '<head>' \
               '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">' \
               '<meta charset="UTF-8">' \
+              '<title>Results of \'{}\'</title>' \
               '</head>' \
               '<body>' \
               '<div class="container">' \
-              '<h1>Results of \'{}\':</h1><br>'.format(" ".join(map(str, sys.argv[1:])))
+              '<h1>Results of \'{}\':</h1><br>'.format(query, query)
         if events:
             for e in events:
                 p = Printable(e, stations, parkings)
-                yield '<h2>{}</h2>'.format(p.event.name)
-                yield '<p>{} (district of {}) - {}</p>'.format(p.event.address, p.event.district,
-                                                               datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
+                yield '<h3>{}</h3>'.format(p.event.name)
+                yield '<p><a href="https://maps.google.com/maps?q=loc:{},{}" target="_blank">{} (district of {})</a> - {}</p>'.format(
+                    p.event.lat, p.event.lon, p.event.address, p.event.district,
+                    datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
                 if p.stations_slots:
-                    yield '<h3>Stations with available slots</h3>' \
+                    yield '<h4>Stations with available slots</h4>' \
                           '<table class="table table-bordered table-hover">' \
                           '<tr>' \
-                          '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
+                          '<th>Address</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
                           '</tr>'
                     for i in p.stations_slots:
                         yield '<tr>' \
-                              '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                              '</tr>'.format(i.street, i.number, i.slots, i.bikes,
-                                             round(i.distance, DIST_DECIMAL_PLACES))
+                              '<td><a href="https://maps.google.com/maps?q=loc:{},{}" target="_blank">{}, {}</a></td><td>{}</td><td>{}</td><td>{} m</td>' \
+                              '</tr>'.format(i.lat, i.lon, i.street, i.number, i.slots, i.bikes, round(i.distance))
                     yield '</table>'
                 if p.stations_bikes:
-                    yield '<h3>Stations with available bikes</h3>' \
+                    yield '<h4>Stations with available bikes</h4>' \
                           '<table class="table table-bordered table-hover">' \
                           '<tr>' \
-                          '<th>Street</th><th>Number</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
+                          '<th>Address</th><th>Free slots</th><th>Available bikes</th><th>Distance</th>' \
                           '</tr>'
                     for i in p.stations_bikes:
                         yield '<tr>' \
-                              '<td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{} km</td>' \
-                              '</tr>'.format(i.street, i.number, i.slots, i.bikes,
-                                             round(i.distance, DIST_DECIMAL_PLACES))
+                              '<td><a href="https://maps.google.com/maps?q=loc:{},{}" target="_blank">{}, {}</a></td><td>{}</td><td>{}</td><td>{} m</td>' \
+                              '</tr>'.format(i.lat, i.lon, i.street, i.number, i.slots, i.bikes, round(i.distance))
                     yield '</table>'
                 if p.parkings:
-                    yield '<h3>Nearby parking lots</h3>' \
+                    yield '<h4>Nearby parking lots</h4>' \
                           '<table class="table table-bordered table-hover">' \
                           '<tr><th>Name</th><th>Address</th><th>Distance</tr>'
                     for i in p.parkings:
                         yield '<tr>' \
-                              '<td>{}</td><td>{}</td><td>{} km</td>' \
-                              '</tr>'.format(i.name, i.street, round(i.distance, DIST_DECIMAL_PLACES))
+                              '<td>{}</td><td><a href="https://maps.google.com/maps?q=loc:{},{}" target="_blank">{}</a></td><td>{} m</td>' \
+                              '</tr>'.format(i.name, i.lat, i.lon, i.street, round(i.distance))
                     yield '</table>'
-                yield '<hr>'
+                yield '<hr><br>'
         else:
             yield 'No results.'
         yield '</div></body></html>'
