@@ -29,13 +29,14 @@ def remove_accents(input_str: str) -> str:
 
 
 class Event(object):
-    def __init__(self, name, address, district, timestamp, lat, lon):
+    def __init__(self, name, address, district, timestamp, lat, lon, link):
         self.name = name
         self.address = address
         self.district = district
         self.timestamp = datetime.strptime(timestamp, "%d/%m/%Y%H:%M")
         self.lat = float(lat)
         self.lon = float(lon)
+        self.link = link
 
     @classmethod
     def get_timestamps(cls, filters):
@@ -85,7 +86,7 @@ class Event(object):
                 addresses = item.find('addresses').find('item')
                 event = Event(item.find('name').text, addresses.find('address').text, addresses.find('district').text,
                               item.find('proxdate').text + item.find('proxhour').text,
-                              addresses.find('gmapx').text, addresses.find('gmapy').text)
+                              addresses.find('gmapx').text, addresses.find('gmapy').text, item.get('href'))
                 events.append(event)
             except AttributeError:
                 pass
@@ -193,7 +194,8 @@ class Printable(object):
         if events:
             for e in events:
                 p = Printable(e, stations, parkings)
-                yield '<h3>{}</h3>'.format(p.event.name)
+                yield '<h3><a href="http://guia.bcn.cat/{}" target="_blank">{}</a></h3>'.format(p.event.link,
+                                                                                                p.event.name)
                 yield '<p><a href="https://maps.google.com/maps?q=loc:{},{}" target="_blank">{} (district of {})</a> - {}</p>'.format(
                     p.event.lat, p.event.lon, p.event.address, p.event.district,
                     datetime.strftime(p.event.timestamp, "%d/%m/%Y %H:%M"))
