@@ -1,6 +1,6 @@
 # LP - Lego
 
-Pau Argelaguet i Franquelo - FIB tardor 2016
+Pau Argelaguet i Franquelo - FIB fall 2016
 
 ## Project structure
 
